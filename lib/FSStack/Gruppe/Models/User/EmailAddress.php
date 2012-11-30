@@ -7,7 +7,7 @@ use \FSStack\Gruppe\Models;
 /**
  * Stores a user's email
  */
-class Email extends \TinyDb\Orm
+class EmailAddress extends \TinyDb\Orm
 {
     public static $table_name = 'users_emails';
     public static $primary_key = array('userID', 'email');
@@ -23,6 +23,20 @@ class Email extends \TinyDb\Orm
      * @var number
      */
     protected $userID;
+
+    /**
+     * Creates an email address for a user
+     * @param  Models\User $user          The user who the email belongs to
+     * @param  string      $email_address The email address
+     * @return EmailAddress               User email mapping
+     */
+    public static function create(Models\User $user, $email_address)
+    {
+        return parent::create(array(
+            'userID' => $user->userID,
+            'email' => $email_address
+        ));
+    }
 
     /**
      * The user with the email address. Magic getter for $email->user

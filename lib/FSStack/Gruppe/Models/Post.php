@@ -2,6 +2,8 @@
 
 namespace FSStack\Gruppe\Models;
 
+use \FSStack\Grouppe\Models\Group;
+
 /**
  * Stores information about a post
  */
@@ -44,6 +46,61 @@ class Post extends \TinyDb\Orm
     protected $caption;
 
     /**
+     * Shared secret for Facebook auth
+     * @var string
+     */
+    protected $fb_shared_secret;
+
+    /**
+     * Creates a new post in the specified group
+     * @param  string $type    Type of the content, either 'image', 'video', 'link', or 'text'
+     * @param  string $title   Optional title of the post
+     * @param  string $content Content, varies based on the type
+     * @param  Group  $group   The group to post in
+     * @return Post            Created post object
+     */
+    public static function create($type, $title = NULL, $content, Group $group)
+    {
+        $model_data = array(
+            'title' => $title,
+        );
+
+        switch ($type) {
+            case 'image':
+                $model_data['image'] = $content;
+                break;
+            case 'video':
+                $model_data['video'] = $content;
+                break;
+            case 'link':
+                $model_data['link'] = $content;
+                break;
+            case 'text':
+                $model_data['markdown'] = $content;
+                break;
+            default:
+                throw new \Exception("Unknown post type");
+                break;
+        }
+
+        $model = parent::create($model_data);
+        Group\Post::create($group, $model);
+
+        return $model;
+    }
+
+    /**
+     * Reposts the post to the specified group
+     * @param  Group  $group            Group to repost to
+     * @param  User   $reposted_by_user User who is reposting
+     * @return Group\Post               Mapping from group to post
+     */
+    public function repost(Group $group, User $reposted_by_user)
+    {
+        return Group\Post::create($group, $this, $reposted_by_user);
+    }
+
+    /**
      * Gets the type of the post, either 'image', 'video', 'link', or 'text'. Magic getter for $post->type
      * @return string Type of the post
      */
@@ -58,6 +115,37 @@ class Post extends \TinyDb\Orm
         } else {
             return 'text';
         }
+    }
+
+    /**
+     * Gets the content of the post, which varies depending on the type. Magic getter for $post->content
+     * @return string Content of the post
+     */
+    public function __get_content()
+    {
+        switch ($this->type) {
+            case 'image':
+                return $this->image;
+            case 'video':
+                return $this->video;
+            case 'link':
+                return $this->link;
+            case 'text':
+                return $this->markdown;
+        }
+    }
+
+    /**
+     * Gets the rendered markdown. Magic getter for $post->html
+     * @return string The html produced by the markdown
+     */
+    public function __get_html()
+    {
+        if ($this->type !== 'text') {
+            throw new \Exception("Not a text post!");
+        }
+
+        // TODO
     }
 
     /**

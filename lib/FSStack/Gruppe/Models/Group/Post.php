@@ -36,6 +36,20 @@ class Post extends \TinyDb\Orm
      */
     protected $score;
 
+    public static function create(Models\Group $group, Models\Post $post, Models\User $reposted_by_user = NULL)
+    {
+        $model_data = array(
+            'groupID' => $group->groupID,
+            'postID' => $post->postID
+        );
+
+        if (isset($reposted_by_user)) {
+            $model_data['reposted_by_userID'] = $reposted_by_user->userID;
+        }
+
+        return parent::create($model_data);
+    }
+
     /**
      * The group the post is in. Magic getter for $groupPost->group
      * @return Models\Group The group the post is in

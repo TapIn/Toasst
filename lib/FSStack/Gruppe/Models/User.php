@@ -2,7 +2,8 @@
 
 namespace FSStack\Gruppe\Models;
 
-use \FSStack\Models\Gruppe\Models\User;
+use \FSStack\Gruppe\Models\Group;
+use \FSStack\Gruppe\Models\User;
 
 /**
  * Represents a user in the system.
@@ -25,7 +26,7 @@ class User extends \TinyDb\Orm
      */
     protected $first_name;
     /**
-     * The user's middle name.
+     * The user's middle name. Optional.
      * @var string
      */
     protected $middle_name;
@@ -70,7 +71,7 @@ class User extends \TinyDb\Orm
     }
 
     /**
-     * The user's birthday timestamp.
+     * The user's birthday timestamp. Optional.
      * @var number
      */
     protected $birthday;
@@ -80,18 +81,18 @@ class User extends \TinyDb\Orm
      */
     protected $gender;
     /**
-     * The user's location. Currently unused.
+     * The user's location. Optional. Currently unused.
      * @var string
      */
     protected $location;
     /**
-     * The user's "about me" text. Currently unused.
+     * The user's "about me" text. Optional. Currently unused.
      * @var string
      */
     protected $about;
 
     /**
-     * The user's display language ID
+     * The user's display language ID. Defaults to "en-us".
      * @var string
      */
     protected $display_languageID;
@@ -132,6 +133,77 @@ class User extends \TinyDb\Orm
         } else {
             return new self($lookup);
         }
+    }
+
+    /**
+     * Creates a new user
+     * @param  string $first_name The user's first name
+     * @param  string $last_name  The user's last name
+     * @param  string $email      The user's email address
+     * @return User               The user
+     */
+    public static function create($first_name, $last_name, $email)
+    {
+        $model = parent::create(array(
+            'first_name' => $first_name,
+            'last_name' => $last_name
+        ));
+
+        $model->associate_email($email);
+        return $model;
+    }
+
+    /**
+     * Checks if the user is logged in
+     * @return boolean TRUE if the user is logged in, FALSE otherwise
+     */
+    public static function is_logged_in()
+    {
+        return isset($_SESSION['current_userID']);
+    }
+
+    /**
+     * Gets the currently logged in user
+     * @return User The currently logged in user
+     */
+    public static function current()
+    {
+        if (self::is_logged_in()) {
+            return new self($_SESSION['current_userID']);
+        } else {
+            throw new \CuteControllers\HttpError(401);
+        }
+    }
+
+    /**
+     * Logs the user in
+     */
+    public function login()
+    {
+        $_SESSION['current_userID'] = $this->userID;
+    }
+
+    /**
+     * Logs the user out
+     */
+    public static function logout()
+    {
+        unset($_SESSION['current_userID']);
+    }
+
+    /**
+     * Associates an email address with this user
+     * @param  string $email_address The email address to associate
+     * @return EmailAddress          User email mapping
+     */
+    public function associate_email($email_address)
+    {
+        return User\EmailAddress::create($this, $email_address);
+    }
+
+    public function vote(Models\Group $group, Models\Post $post, $vote)
+    {
+        return User\Vote::create($this, $group, $post, $vote);
     }
 
     /**
