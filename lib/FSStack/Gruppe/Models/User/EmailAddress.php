@@ -32,10 +32,18 @@ class EmailAddress extends \TinyDb\Orm
      */
     public static function create(Models\User $user, $email_address)
     {
-        return parent::create(array(
-            'userID' => $user->userID,
-            'email' => $email_address
-        ));
+        try {
+            return parent::create(array(
+                'userID' => $user->userID,
+                'email' => $email_address
+            ));
+        } catch (\Exception $ex) {
+            try {
+                return new self(array('email' => $email_address));
+            } catch (\Exception $ex2) {
+                throw $ex;
+            }
+        }
     }
 
     /**

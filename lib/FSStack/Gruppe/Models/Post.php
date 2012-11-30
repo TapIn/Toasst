@@ -46,12 +46,6 @@ class Post extends \TinyDb\Orm
     protected $caption;
 
     /**
-     * Shared secret for Facebook auth
-     * @var string
-     */
-    protected $fb_shared_secret;
-
-    /**
      * Creates a new post in the specified group
      * @param  string $type    Type of the content, either 'image', 'video', 'link', or 'text'
      * @param  string $title   Optional title of the post

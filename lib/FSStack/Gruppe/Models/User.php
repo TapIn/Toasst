@@ -37,6 +37,18 @@ class User extends \TinyDb\Orm
     protected $last_name;
 
     /**
+     * Facebook user ID
+     * @var string
+     */
+    protected $fb_id;
+
+    /**
+     * Facebook auth token
+     * @var string
+     */
+    protected $fb_access_token;
+
+    /**
      * Gets the user's full name
      * @return string The user's full name
      */
@@ -107,32 +119,14 @@ class User extends \TinyDb\Orm
     }
 
     /**
-     * Creates an instance of the class.
-     * @param mixed     $lookup     * If the paramater is null, the object will be uninitialized. Otherwise:
-     *                              * If the paramater is a string containing an @, a lookup will be performed
-     *                                on the user's email address. The first result will be returned.
-     *                              * If the paramater is an associative array, and a lookup will be performed
-     *                                on the database for (WHERE `key` = 'val' AND `key` = 'val' ...). The
-     *                                first result will be returned.
-     *                              * If the paramater is a non-associative array, and the primary key is also
-     *                                an array, the paramater will be treated as values for the primary keys,
-     *                                and populated as specified above.
-     *                              * If the paramater is not an array, or the table has a single primary key,
-     *                                the paramater will be cast as a string, and be used as a match for the
-     *                                primary key. The first result will populate the database.
+     * Gets a user by email address
+     * @param  string $lookup Email address to look for
+     * @return User           User having the email
      */
-    public function __construct($lookup = NULL)
+    public static function get_from_email($lookup)
     {
-        if (is_string($lookup) && strstr($lookup, '@')) { // Allow instantiation by email address
-            try {
-                $email = new User\EmailAddress($lookup);
-                return $email->user;
-            } catch (\TinyDb\NoRecordException $ex) {
-                throw \TinyDb\NoRecordException(); // Rethrow to fix the stack trace
-            }
-        } else {
-            return new self($lookup);
-        }
+        $email = new User\EmailAddress(array('email' => $lookup));
+        return $email->user;
     }
 
     /**
@@ -199,11 +193,6 @@ class User extends \TinyDb\Orm
     public function associate_email($email_address)
     {
         return User\EmailAddress::create($this, $email_address);
-    }
-
-    public function vote(Models\Group $group, Models\Post $post, $vote)
-    {
-        return User\Vote::create($this, $group, $post, $vote);
     }
 
     /**
