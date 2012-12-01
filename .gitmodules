@@ -19,3 +19,9 @@
 [submodule ".submodules/Twilio"]
 	path = .submodules/Twilio
 	url = git://github.com/twilio/twilio-php.git
+[submodule ".submodules/php-markdown"]
+	path = .submodules/php-markdown
+	url = http://git.michelf.ca/php-markdown
+[submodule ".submodules/php-smartypants"]
+	path = .submodules/php-smartypants
+	url = http://git.michelf.ca/php-smartypants

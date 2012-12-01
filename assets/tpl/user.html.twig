@@ -1,0 +1,55 @@
+{% extends "main.template.html.twig" %}
+
+{% block sidebar %}
+   <div class="row-fluid">
+    <div class="span2 user-sidebar">
+      <div class="sidebar-nav">
+        <ul class="nav nav-list user-actions">
+          <li><div class='user-icon-med'><img src="assets/img/user.png"></div></li>
+          <li><a href="#">Followers <span class='user-actions-count'>(23)</span></a></li>
+          <li><a href="#">Following <span class='user-actions-count'>(23)</span></a></li>
+        </ul>
+      </div>
+    </div>    
+    <div class="span10 user-posts">
+      <div class='container-fluid'>
+        <div class="posts-title">
+          <span class='title-text'>{{ user.name }}</span><a href="#" class="btn disabled title-action">+ follow</a>
+        </div>
+{% endblock %}
+
+{% block content %}
+{% for post in user.posts %}
+    {% block post %}     
+    <div class='post-container' data-postID='{{ post }}' data-groupID=' {{ group }}'>
+        <div class='container-fluid'>
+          {% if post.title %}
+          <a class='post-title' href='/t/{{ post }}'>{{ post.title }}</a><span class='post-delimiter'></span>
+          {% endif %}
+          <div>
+            <div class='post-voting'>
+              <div class='upvote'>Ʌ</div>
+              <div class='downvote'>V</div>
+            </div>
+            <div class='container-fluid post-body' onmouseover='fadeInEditDongle(this)' onmouseout='fadeOutEditDongle(this)'>
+              {{ post.content|raw }}
+              <div class=' container-fluid post-footer'>
+                <li><a class='post-username' href='user/{{ post.user }}'>{{ post.user.name }}</a></li>
+                <li><span class='light'>to</span> <a class='post-topic' href='/g/{{ group.link_name }}'>{{ group.name }}</a></li>
+                <li><span class='post-timestamp timeago' title='2008-07-17T09:24:17Z'></span></li>
+                <!-- {{ post.created_at | date}} -->
+
+                <div class='edit-dongle'>
+<!--                 <li><a href=''><i class="post-icon icon-pencil" onclick='showReplySelector(this)'></i></a></li>
+ -->                <li><a href=''><i class="post-icon icon-random"></i></a></li>
+                <li><a href='/g/{{ group }}/t/{{ post.user }}'><i class="post-icon icon-comment"></i></a></li>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% endblock %}
+{% endfor %}
+{% endblock %}

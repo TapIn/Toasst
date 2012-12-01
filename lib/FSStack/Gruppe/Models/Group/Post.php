@@ -36,6 +36,18 @@ class Post extends \TinyDb\Orm
      */
     protected $score;
 
+    /**
+     * The time the post was created.
+     * @var number
+     */
+    protected $created_at;
+
+    /**
+     * The time the post was last modified.
+     * @var number
+     */
+    protected $modified_at;
+
     public static function create(Models\Group $group, Models\Post $post, Models\User $reposted_by_user = NULL)
     {
         $model_data = array(
@@ -48,6 +60,25 @@ class Post extends \TinyDb\Orm
         }
 
         return parent::create($model_data);
+    }
+
+    /**
+     * Gets a collection of Group Post mappings which are replies to the current post in the current group. Magic getter
+     * for $groupPost->replies
+     * @return \TinyDb\Collection[Group\Post] Replies to post in group
+     */
+    public function __get_replies()
+    {
+        $collection = new \TinyDb\Collection('\FSStack\Gruppe\Models\Group\Post', \TinyDb\Sql::create()
+                                      ->join('posts ON (groups_posts.postID = posts.postID)')
+                                      ->where('posts.in_reply_to_postID = ?', $this->postID));
+        return $collection;
+    }
+
+    public function __get_test()
+    {
+        echo "<h1>OMG</h1>";
+        exit;
     }
 
     /**

@@ -186,6 +186,41 @@ class User extends \TinyDb\Orm
     }
 
     /**
+     * Gets all posts from the user, both replies and top-level (but not reposts)
+     * @return \TinyDb\Collection[Post] All posts from the user
+     */
+    public function __get_posts()
+    {
+        return new \TinyDb\Collection('\FSStack\Gruppe\Models\Post', \TinyDb\Sql::create()
+                                      ->where('userID = ?', $this->userID));
+    }
+
+    public function __get_unread_notifications()
+    {
+        return new \TinyDb\Collection('\FSStack\Gruppe\Models\Notification', \TinyDb\Sql::create()
+                                                                ->where('is_read = 0')
+                                                                ->where('userID = ?', $this->userID));
+    }
+
+    public function get_newsfeed_posts($count, $after = NULL)
+    {
+        $sql = \TinyDb\Sql::create()
+              ->select('groups_posts.*')
+              ->from('groups_posts')
+              ->join('posts ON (posts.postID = groups_posts.postID)')
+              ->where('groupID IN (SELECT groupID FROM `users_groups` WHERE (userID = ?))', $this->userID)
+              ->where('posts.in_reply_to_postID IS NULL OR groups_posts.reposted_by_userID IS NOT NULL')
+              ->order_by('created_at DESC')
+              ->limit($count);
+
+        if (isset($after)) {
+            $sql->where('posts.postID < ?', $after);
+        }
+
+        return new \TinyDb\Collection('\FSStack\Gruppe\Models\Group\Post', $sql);
+    }
+
+    /**
      * Associates an email address with this user
      * @param  string $email_address The email address to associate
      * @return EmailAddress          User email mapping
@@ -202,6 +237,7 @@ class User extends \TinyDb\Orm
     public function __get_groups()
     {
         return new \TinyDb\Collection('\FSStack\Gruppe\Models\Group', \TinyDb\Sql::create()
+                                      ->join('users_groups ON (users_groups.groupID = groups.groupID)')
                                       ->where('userID = ?', $this->userID));
     }
 

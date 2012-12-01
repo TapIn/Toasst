@@ -44,12 +44,32 @@ class Group extends \TinyDb\Orm
     protected $is_closed;
 
     /**
+     * A short name used in generating URLs; optional
+     * @var string
+     */
+    protected $short_name;
+
+    /**
+     * Gets the short name if one exists, otherwise returns the groupID. Magic getter for $group->link_name
+     * @return string The name of the group for use in URLs
+     */
+    public function __get_link_name()
+    {
+        if ($this->short_name) {
+            return $this->short_name;
+        } else {
+            return $this->groupID;
+        }
+    }
+
+    /**
      * Gets the members in the group. Magic getter for $group->members
      * @return \TinyDb\Collection[User] Collection of users in the group
      */
     public function __get_members()
     {
         return new \TinyDb\Collection('\FSStack\Gruppe\Models\User', \TinyDb\Sql::create()
+                                        ->join('users_groups ON (users.userID = users_groups.userID)')
                                         ->where('groupID = ?', $this->groupID));
     }
 
@@ -76,13 +96,19 @@ class Group extends \TinyDb\Orm
      */
     public function get_newsfeed_posts($count = 15, $after = NULL)
     {
+        $query = \TinyDb\Sql::create()
+                  ->select('groups_posts.*')
+                  ->from('groups_posts')
+                  ->join('posts ON (posts.postID = groups_posts.postID)')
+                  ->where('groupID = ?', $this->groupID)
+                  ->where('posts.in_reply_to_postID IS NULL OR groups_posts.reposted_by_userID IS NOT NULL')
+                  ->order_by('created_at DESC')
+                  ->limit($count);
+
         if (isset($after)) {
-            return new \TinyDb\Collection('\FSStack\Gruppe\Models\Group\Post', \TinyDb\Sql::create()
-                                      ->where('postID < ?', $after)
-                                      ->limit(0, $count));
-        } else {
-            return new \TinyDb\Collection('\FSStack\Gruppe\Models\Group\Post', \TinyDb\Sql::create()
-                                      ->limit(0, $count));
+            $query = $query->where('postID < ?', $after);
         }
+
+        return new \TinyDb\Collection('\FSStack\Gruppe\Models\Group\Post', $query);
     }
 }

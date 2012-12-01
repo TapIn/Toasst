@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Toasst</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="/assets/css/bootstrap.css" rel="stylesheet">
+    <link href="/assets/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/assets/css/css.css" rel="stylesheet">
+
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+<!-- Begin NavBar -->
+      <div class="navbar navbar navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </a>
+        <a class="brand" href="/">Toasst</a>
+        <div class="nav-collapse collapse">
+          <ul class="nav pull-right">
+            <li><a href="#" class='notification'>8</a></li>
+             <li><a href="/user/me" class="dropdown-toggle nav-username" data-toggle="dropdown"> {{ current_user.name}}</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Begin Hidden Selectors -->
+  <!-- Hidden reply selector -->
+ <div>
+    <div id='reply-selector' class='reply-selector'>
+      <li><a onclick='selectText(this)' ><img src="/assets/img/text.png"></img></a></li>
+      <li><a onclick='selectLink(this)' ><img src="/assets/img/link.png"></img></a></li>
+      <li><a onclick='selectPhoto(this)'><img src="/assets/img/photo.png"></img></a></li>
+      <li><a onclick='selectVideo(this)'><img src="/assets/img/video.png"></img></a></li>
+    </div>
+  </div>
+<!-- Hidden text comment -->
+<form id='reply-form' method=post>
+<input id='reply-title' type='text' name="comments" placeholder='title...'></input></br>
+<textarea id='comment-content' name="comments" cols=40 rows=6 placeholder='Type text here...'></textarea>
+<P><button type='button' value="submit" onclick='submitNewComment(this)'>submit</button>
+</form>
+
+<!-- Hidden link comment -->
+<form id='link-form'>
+<input id='reply-title' type='text' name="comments" placeholder='title...'></input></br>
+<input id='link-content' type='text' name="comments" placeholder='http://...'></input>
+<button type='button' onclick='submitNewLink(this)' value="submit">submit</button>
+</form>
+
+<!-- End Hidden Selectors -->
+
+
+  <div class="container"> <!-- Start Main Container -->
+
+
+</br>
+
+<div class='container-fluid'>
+  <div class='posts-title'>
+    <span class='title-text'>{% block title %}{% endblock %}</span>
+  </div>
+  {% block sidebar %}
+  {% endblock %}
+
+
+  <div class="posts-contents">
+    <!-- Begin twig content template -->
+    {% block content %}
+    {% endblock %}
+
+  </div>
+</div>
+<!-- <br>
+<footer>
+    <p class='copyright'>&copy; Toast 2012</p>
+</footer> -->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/assets/js/jquery.js"></script>
+    <script src="/assets/js/js.js"></script>
+    <script src="/assets/js/bootstrap-dropdown.js"></script>
+    <script src="/assets/js/timeago.js"></script>
+
+</body>
+</html>
+
+
+<script>
+jQuery(document).ready(function() {
+  jQuery("span.timeago").timeago();
+});
+</script>

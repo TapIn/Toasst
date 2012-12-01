@@ -1,0 +1,28 @@
+{% extends "main.template.html.twig" %}
+{% block sidebar %}
+   <div class="row-fluid">
+    <div class="span2 user-sidebar">
+      <div class="sidebar-nav">
+        <ul class="nav nav-list user-actions">
+          <li class="nav-header">Members</li>
+          {% for user in group.members %}
+          <li><a href="/u/{{ user }}">{{ user.name }}</a></li>
+          {% endfor %}
+          <li><a href="#"></a></li>
+        </ul>
+      </div>
+    </div>    
+    <div class="span10 user-posts">
+      <div class='container-fluid'>
+        <div class="posts-title">
+          <span class='title-text'>{{ group.name }}</span><a href="#" class="post-btn btn disabled title-action" onclick='showReplySelector(this)'>+ post</a>
+        </div>
+        </div>
+{% endblock %}
+{% block content %}
+{% for grouppost in group.get_newsfeed_posts() %}
+{% block post %}     
+    {% include 'post.template.html.twig' %}
+{% endblock %}
+{% endfor %}
+{% endblock %}

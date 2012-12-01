@@ -1,0 +1,28 @@
+<div class='post-container' data-postID='{{ grouppost.post }}' data-groupID=' {{ grouppost.group }}'>
+        <div class='container-fluid'>
+          {% if grouppost.post.title %}
+          <a class='post-title' href='/t/{{ grouppost.post }}'>{{ grouppost.post.title }}</a><span class='post-delimiter'></span>
+          {% endif %}
+          <div>
+            <div class='post-voting'>
+              <div class='upvote'>Ʌ</div>
+              <div class='downvote'>V</div>
+            </div>
+            <div class='container-fluid post-body' onmouseover='fadeInEditDongle(this)' onmouseout='fadeOutEditDongle(this)'>
+              {{ grouppost.post.content|raw }}
+              <div class=' container-fluid post-footer'>
+                <li><a class='post-username' href='user/{{ grouppost.post.user }}'>{{ grouppost.post.user.name }}</a></li>
+                <li><span class='light'>to</span> <a class='post-topic' href='/g/{{ grouppost.group.link_name }}'>{{ grouppost.group.name }}</a></li>
+                <li><span class='post-timestamp timeago' title='2008-07-17T09:24:17Z'></span></li>
+                <!-- {{ grouppost.post.created_at | date}} -->
+
+                <div class='edit-dongle'>
+<!--                 <li><a href=''><i class="post-icon icon-pencil" onclick='showReplySelector(this)'></i></a></li>
+ -->                <li><a href=''><i class="post-icon icon-random"></i></a></li>
+                <li><a href='/g/{{ grouppost.group }}/t/{{ grouppost.post.user }}'><i class="post-icon icon-comment"></i></a></li>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>

@@ -2,7 +2,7 @@
 
 namespace FSStack\Gruppe\Models;
 
-use \FSStack\Grouppe\Models\Group;
+use \FSStack\Gruppe\Models;
 
 /**
  * Stores information about a post
@@ -46,6 +46,33 @@ class Post extends \TinyDb\Orm
     protected $caption;
 
     /**
+     * ID of the user who made the original post
+     * @var string
+     */
+    protected $userID;
+
+    /**
+     * The time the post was created.
+     * @var number
+     */
+    protected $created_at;
+
+    /**
+     * The time the post was last modified.
+     * @var number
+     */
+    protected $modified_at;
+
+    /**
+     * Gets the user object for the user who made the original post. Magic getter for $post->user.
+     * @return User User object for the user who made the original post.
+     */
+    public function __get_user()
+    {
+        return new User($this->userID);
+    }
+
+    /**
      * Creates a new post in the specified group
      * @param  string $type    Type of the content, either 'image', 'video', 'link', or 'text'
      * @param  string $title   Optional title of the post
@@ -53,10 +80,11 @@ class Post extends \TinyDb\Orm
      * @param  Group  $group   The group to post in
      * @return Post            Created post object
      */
-    public static function create($type, $title = NULL, $content, Group $group)
+    public static function create(Models\User $user, $type, $title = NULL, $content, Group $group)
     {
         $model_data = array(
             'title' => $title,
+            'userID' => $user->userID
         );
 
         switch ($type) {
@@ -78,7 +106,7 @@ class Post extends \TinyDb\Orm
         }
 
         $model = parent::create($model_data);
-        Group\Post::create($group, $model);
+        Models\Group\Post::create($group, $model);
 
         return $model;
     }
@@ -87,11 +115,11 @@ class Post extends \TinyDb\Orm
      * Reposts the post to the specified group
      * @param  Group  $group            Group to repost to
      * @param  User   $reposted_by_user User who is reposting
-     * @return Group\Post               Mapping from group to post
+     * @return Models\Group\Post               Mapping from group to post
      */
     public function repost(Group $group, User $reposted_by_user)
     {
-        return Group\Post::create($group, $this, $reposted_by_user);
+        return Models\Group\Post::create($group, $this, $reposted_by_user);
     }
 
     /**
@@ -100,11 +128,11 @@ class Post extends \TinyDb\Orm
      */
     public function __get_type()
     {
-        if (isset($this->image)) {
+        if ($this->image) {
             return 'image';
-        } else if (isset($this->video)) {
+        } else if ($this->video) {
             return 'video';
-        } else if (isset($this->link)) {
+        } else if ($this->link) {
             return 'link';
         } else {
             return 'text';
@@ -115,7 +143,7 @@ class Post extends \TinyDb\Orm
      * Gets the content of the post, which varies depending on the type. Magic getter for $post->content
      * @return string Content of the post
      */
-    public function __get_content()
+    public function __get_content( $original = FALSE )
     {
         switch ($this->type) {
             case 'image':
@@ -125,8 +153,17 @@ class Post extends \TinyDb\Orm
             case 'link':
                 return $this->link;
             case 'text':
-                return $this->markdown;
+                if ($original) {
+                    return $this->markdown;
+                } else {
+                    return SmartyPants(Markdown($this->markdown));
+                }
         }
+    }
+
+    public function __get_original_content()
+    {
+        return $this->__get_content(TRUE);
     }
 
     /**
@@ -182,22 +219,22 @@ class Post extends \TinyDb\Orm
 
     /**
      * Gets the reposts of this post. Magic getter for $post->reposts
-     * @return \TinyDb\Collection[Group\Post] Instances of the post which are not the original
+     * @return \TinyDb\Collection[Models\Group\Post] Instances of the post which are not the original
      */
     public function __get_reposts()
     {
-        return new \TinyDb\Collection('\FSStack\Gruppe\Models\Group\Post', \TinyDb\Sql::create()
+        return new \TinyDb\Collection('\FSStack\Gruppe\Models\Models\Group\Post', \TinyDb\Sql::create()
                                       ->where('postID = ?', $this->postID)
                                       ->where('reposted_by_userID IS NOT NULL'));
     }
 
     /**
      * Gets all instances of this post, including the original. Magic getter for $post->all_post_instances
-     * @return \TinyDb\Collection[Group\Post] Instances of the post
+     * @return \TinyDb\Collection[Models\Group\Post] Instances of the post
      */
     public function __get_all_post_instances()
     {
-        return new \TinyDb\Collection('\FSStack\Gruppe\Models\Group\Post', \TinyDb\Sql::create()
+        return new \TinyDb\Collection('\FSStack\Gruppe\Models\Models\Group\Post', \TinyDb\Sql::create()
                                       ->where('postID = ?', $this->postID));
     }
 }
