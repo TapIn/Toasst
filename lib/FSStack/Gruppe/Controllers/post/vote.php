@@ -4,14 +4,12 @@ namespace FSStack\Gruppe\Controllers\post;
 
 use \FSStack\Gruppe\Models;
 
-class Vote extends \CuteControllers\Base\Rest
+class Vote extends PostController
 {
-    public function __post_index($groupID, $postID)
+    public function __post_index()
     {
         $vote = $this->request->post('vote');
-        $group = new Models\Group($groupID);
-        $post = new Models\Post($postID);
 
-        Models\User::current()->vote($group, $post, $vote);
+        return Models\User::current()->vote($this->group, $this->post, $vote);
     }
 }

@@ -62,7 +62,7 @@ class Vote extends \TinyDb\Orm
             }
         */
 
-        if ($vote > 1 || $vote < -1 || !is_integer($vote)) {
+        if ($vote > 1 || $vote < -1 || intval($vote) != $vote) {
             throw new \Exception('Vote must be an integer from -1 to 1.');
         }
 
@@ -86,17 +86,19 @@ class Vote extends \TinyDb\Orm
             // Update the vote cache:
             $previous = $model->vote;
             $adjustment = ($previous * -1) + $vote;
-            $group_post->vote += $adjustment;
+            $group_post->score += $adjustment;
             $group_post->update();
 
             $model->vote = $vote;
             $model->downvote_reason = $downvote_reason;
+            $model->invalidate('vote');
+            $model->invalidate('downvote_reason');
             $model->update();
 
             return $model;
         } else {
             // Update the vote cache
-            $group_post->vote += $vote;
+            $group_post->score += $vote;
             $group_post->update();
 
             return parent::create(array(

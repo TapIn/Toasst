@@ -1,28 +1,24 @@
 {% extends "main.template.html.twig" %}
 {% block sidebar %}
-   <div class="row-fluid">
-    <div class="span2 user-sidebar">
-      <div class="sidebar-nav">
-        <ul class="nav nav-list user-actions">
-          <li class="nav-header">Members</li>
-          {% for user in group.members %}
-          <li><a href="/u/{{ user }}">{{ user.name }}</a></li>
-          {% endfor %}
-          <li><a href="#"></a></li>
-        </ul>
-      </div>
-    </div>    
-    <div class="span10 user-posts">
+  {% include 'sidebar.html.twig' %}
       <div class='container-fluid'>
         <div class="posts-title">
-          <span class='title-text'>{{ group.name }}</span><a href="#" class="post-btn btn disabled title-action" onclick='showReplySelector(this)'>+ post</a>
+          <span class='title-text'>{{ group.name }}</span>
+          <a id='follow-btn' class="post-btn btn disabled title-action" onclick='followGroup()'>{% if current_user.is_member(group) %} unfollow group {% else %}follow group{% endif %}</a>
+          <a class="post-btn btn disabled title-action" onclick='showReplySelector(this)'>+ post</a>
+          {% if current_user.owns_group(group) %}
+            <a href="/g/{{ group.groupID }}/settings" class="post-btn btn title-action">Settings</a>
+          {% endif %}
         </div>
-        </div>
-{% endblock %}
+        </div>{% endblock %}
 {% block content %}
+{% if group.get_newsfeed_posts() | length < 1 %}
+  <div class='post-container' style='margin-left: 20px'><p>There are no posts right now. Click the post button to post above something awesome!</p></div>
+{% endif %}
 {% for grouppost in group.get_newsfeed_posts() %}
-{% block post %}     
+{% block post %}
     {% include 'post.template.html.twig' %}
 {% endblock %}
 {% endfor %}
+
 {% endblock %}

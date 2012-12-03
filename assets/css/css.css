@@ -24,14 +24,14 @@ body {
 .post-icon {
   transition:  .15s linear;
  -moz-transition:  .15s linear;
- -webkit-transition:  .15s linear;   
+ -webkit-transition:  .15s linear;
 }
 
 .edit-dongle {
   opacity:0;
   transition:  .15s linear;
  -moz-transition:  .15s linear;
- -webkit-transition:  .15s linear; 
+ -webkit-transition:  .15s linear;
 }
 
 .post-icon:hover {
@@ -54,7 +54,7 @@ body {
   font-weight: 500;
  transition:  .10s linear;
  -moz-transition:  .10s linear;
- -webkit-transition:  .10s linear;   
+ -webkit-transition:  .10s linear;
 }
 
 .post-delimiter {
@@ -64,7 +64,7 @@ body {
 }
 
 .post-topic {
-  color: #555;
+  color: #eee;
   font-weight: 500;
   font-size: 13px;
 
@@ -91,7 +91,7 @@ body {
     margin-top: 3px;
     margin-left: 8px;
     cursor:pointer;
- 
+
   }
 
   .upvote:hover{
@@ -102,11 +102,19 @@ body {
     color:#e11717;
   }
 
+  .upvote.active{
+    color:#e11717;
+  }
+
+  .downvote.active{
+    color:#e11717;
+  }
+
   .upvote {
     margin-bottom: 2px;
      transition:  .10s linear;
     -moz-transition:  .10s linear;
-    -webkit-transition:  .10s linear;  
+    -webkit-transition:  .10s linear;
   }
 
 
@@ -114,7 +122,7 @@ body {
     margin-bottom: 2px;
      transition:  .10s linear;
     -moz-transition:  .10s linear;
-    -webkit-transition:  .10s linear;  
+    -webkit-transition:  .10s linear;
   }
 
 
@@ -164,8 +172,9 @@ body {
     margin-top: 4px;
   }
 
-  #reply-title {
+  .reply-title {
     display:none;
+    width: 400px;
   }
 
   .post-reply {
@@ -173,17 +182,26 @@ body {
     margin-top: -15px;
   }
 
-  .navbar-inner {
-    min-height: 40px;
-    background:url('../img/cream_dust.png');
+  .navbar .navbar-inner {
+    min-height: 35px;
+    background:url('../img/toast-header.png');
+    border-bottom: 1px solid #C5A773;
   }
 
   .navbar .brand {
     font-family: 'Helvetica Neue', sans-serif;
     text-transform: none;
-    color: #2c2c2c;
+    color: #fff;
     padding-top: 10px !important;
     padding-bottom: 10px !important;
+    text-indent: -99999px;
+    background-image: url(../img/toasst.png);
+    display: block;
+    width: 80px;
+  }
+
+  .new-notification {
+    background: #f2f2f2;
   }
 
   .notification {
@@ -193,20 +211,23 @@ body {
     padding-top: 10px !important;
     padding-bottom: 10px !important;
     margin-right: 10px;
-    background: #e11717;
   transition:  .10s linear;
  -moz-transition:  .10s linear;
- -webkit-transition:  .10s linear;   
+ -webkit-transition:  .10s linear;
+  }
+
+  .notification.active {
+    background: #e11717;
   }
 
   .notification:hover {
-      background: #2c2c2c !important;
+      background: #666 !important;
   }
 
   .nav-username {
     font-family: 'Helvetica Neue', sans-serif;
     text-transform: none !important;
-    color: #2c2c2c !important;
+    color: #C5A773 !important;
     padding-top: 10px !important;
     padding-bottom: 10px !important;
   }
@@ -230,7 +251,7 @@ body {
     color: #cccccc;
     transition:  .15s linear;
    -moz-transition:  .15s linear;
-   -webkit-transition:  .15s linear;   
+   -webkit-transition:  .15s linear;
   }
 
   .copyright {
@@ -239,7 +260,7 @@ body {
   }
 
   .user-posts {
-    border-left: 2px solid #eee;
+    border-left: 1px solid #C5A773;
     margin-top: -20px;
     padding-top: 20px;
     margin-bottom: -20px;
@@ -264,6 +285,16 @@ body {
   .user-icon-med {
     width: 115px;
     height: 115px;
+    overflow:hidden;
+    border-radius: 100px;
+    border: 2px solid #C5A773;
+  }
+
+    .user-icon-small {
+    width: 40px;
+    height: 40px;
+    overflow:hidden;
+    border: 2px solid #C5A773;
   }
 
   .title-action {
@@ -282,9 +313,9 @@ body {
     opacity: 0;
    transition: opacity .25s linear;
    -moz-transition: opacity .25s linear;
-   -webkit-transition: opacity .25s linear;    
+   -webkit-transition: opacity .25s linear;
    display:none;
-   
+
    }
 
  .reply-selector a {
@@ -356,7 +387,7 @@ body {
   }
 
   .loading-icon {
-    margin-top: 33px; 
+    margin-top: 33px;
   }
 
   .headline {
@@ -376,7 +407,7 @@ body {
     opacity: 0;
    transition: opacity .25s linear;
    -moz-transition: opacity .25s linear;
-   -webkit-transition: opacity .25s linear;    
+   -webkit-transition: opacity .25s linear;
   }
 
   #link-form {
@@ -384,7 +415,7 @@ body {
     opacity: 0;
    transition: opacity .25s linear;
    -moz-transition: opacity .25s linear;
-   -webkit-transition: opacity .25s linear;    
+   -webkit-transition: opacity .25s linear;
   }
 
   .breadcrumb {
@@ -413,10 +444,19 @@ body {
   }
 
   #comment-content {
-    width: 500px;
+    width: 400px;
     height: 100px;
   }
 
   #link-content {
     margin-top:4px;
+    width: 400px;
+  }
+
+  .dropdown-menu li a {
+    color: #222;
+    font-size: 12px !important;
+    font-family: 'helvetica neue', 'helvetica', 'arial' !important;
+    font-weight: 400 !important;
+    border-bottom: 1px solid #CCC;
   }

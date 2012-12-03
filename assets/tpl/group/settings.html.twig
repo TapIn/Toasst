@@ -1,0 +1,136 @@
+{% extends "main.template.html.twig" %}
+{% block sidebar %}
+   <div class="row-fluid">
+    <div class="span2 user-sidebar">
+      <div class="sidebar-nav">
+        <ul class="nav nav-list user-actions">
+          <li class="nav-header">Members</li>
+          {% for user in group.members %}
+          <li><a href="/u/{{ user }}">{{ user.name }}</a></li>
+          {% endfor %}
+          <li><a href="#"></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="span10 user-posts">
+      <div class='container-fluid'>
+        <div class="posts-title">
+          <span class='title-text'>{{ group.name }}</span><a href="/g/{{ group.groupID }}" class="post-btn btn title-action">Back</a>
+        </div>
+        </div>
+{% endblock %}
+{% block content %}
+    <h2>Settings</h2>
+    <form method="post" class="form-horizontal">
+        <fieldset>
+
+            {# Group Name #}
+            <div class="control-group">
+                <label class="control-label" for="name">Group Name</label>
+                <div class="controls">
+                    <input type="text" name="name" id="name" value="{{ group.name }}" placeholder="Group Name" />
+                    <span class="help-block">
+                        The group name to display at the top of every page: required.
+                    </span>
+                </div>
+            </div>
+
+            {# Short Name #}
+            <div class="control-group">
+                <label class="control-label" form="short_name">Short Name</label>
+                <div class="controls">
+                    <div class="input-prepend">
+                        <span class="add-on">http://toasst.com/</span>
+                        <input type="text" name="short_name" id="short_name" maxlength="60"
+                            placeholder="Short Name" value="{{ group.short_name }}"
+                            {% if group.short_name %}
+                                disabled="true"
+                            {% endif %} />
+                    </div>
+                    <span class="help-block">
+                        A short name to be used in your URL. Optional, but once set, it <strong>cannot
+                        be changed</strong>. Must be between 5-50 ASCII characters.
+                    </span>
+                </div>
+            </div>
+
+            {# Description #}
+            <div class="control-group">
+                <label class="control-label" for="description">Description</label>
+                <div class="controls">
+                    <textarea name="description" id="description"
+                        placeholder="Description" class="input-xxlarge">{{ group.description }}</textarea>
+                    <span class="help-block">
+                        Group description. Optional.
+                    </span>
+                </div>
+            </div>
+
+            {# Appearance #}
+            <div class="control-group">
+                <label class="control-label">Appearance</label>
+                <div class="controls">
+                    <div class="input-prepend">
+                        <span class="add-on">#</span>
+                        <input type="text" name="color" id="color" class="input-small" maxlength="6"
+                            placeholder="Color" value="{{ group.color }}" />
+                    </div>
+                    <h3>Icon</h3>
+                </div>
+            </div>
+
+            {# Privacy #}
+            <div class="control-group">
+                <label class="control-label">Privacy Controls</label>
+                <div class="controls">
+                    <label class="checkbox">
+                        <input type="checkbox" name="is_private" id="is_private" value="true"
+                            {% if group.is_private %}
+                                checked="true"
+                            {% endif %} />
+                            Require link to join
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" name="is_closed" id="is_secret" value="true"
+                            {% if group.is_closed %}
+                                checked="true"
+                            {% endif %} />
+                            Only admins can add members
+                    </label>
+                </div>
+            </div>
+
+            <input type="submit" class="btn btn-primary pull-right" value="Update" />
+        </fieldset>
+    </form>
+
+    {% if current_user.is_admin %}
+        <form method="post" action="/g/{{ group.groupID }}/settings/delete">
+            <input type="submit" class="btn btn-inverse" value="Delete" />
+        </form>
+    {% endif %}
+
+    <h1>Members</h1>
+    <ul>
+        {% for member in group.members %}
+            <li>
+                {{ member.name }}
+                {% if member.owns_group(group) %}
+                    <form style="display:inline" method="post" action="/g/{{ group.groupID }}/settings/demote_owner">
+                        <input type="hidden" name="userID" value="{{ member.userID }}" />
+                        <input type="submit" class="btn btn-mini btn-warning" value="Demote" />
+                    </form>
+                {% else %}
+                    <form style="display:inline" method="post" action="/g/{{ group.groupID }}/settings/promote_owner">
+                        <input type="hidden" name="userID" value="{{ member.userID }}" />
+                        <input type="submit" class="btn btn-mini btn-success" value="Promote" />
+                    </form>
+                    <form style="display:inline" method="post" action="/g/{{ group.groupID }}/settings/kick">
+                        <input type="hidden" name="userID" value="{{ member.userID }}" />
+                        <input type="submit" class="btn btn-mini btn-danger" value="Kick" />
+                    </form>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

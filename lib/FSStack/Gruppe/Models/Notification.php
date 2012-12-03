@@ -11,11 +11,11 @@ class Notification extends \TinyDb\Orm
     protected $userID;
     protected $is_read;
 
-    public static function create($type, Post $post, Group $group, User $source_user)
+    public static function create($type, Post $post, Group $group, User $source_user, User $dest_user)
     {
         return parent::create(array(
             'type' => $type,
-            'userID' => $post->user->userID,
+            'userID' => $dest_user->userID,
             'groupID' => $group->groupID,
             'postID' => $post->postID,
             'source_userID' => $source_user->userID

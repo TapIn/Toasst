@@ -3,7 +3,7 @@
 namespace FSStack\Gruppe\Models;
 
 use \FSStack\Gruppe\Models\Group;
-use \FSStack\Gruppe\Models\User;
+use \FSStack\Gruppe\Models;
 
 /**
  * Represents a user in the system.
@@ -47,6 +47,8 @@ class User extends \TinyDb\Orm
      * @var string
      */
     protected $fb_access_token;
+
+    protected $is_admin;
 
     /**
      * Gets the user's full name
@@ -125,7 +127,7 @@ class User extends \TinyDb\Orm
      */
     public static function get_from_email($lookup)
     {
-        $email = new User\EmailAddress(array('email' => $lookup));
+        $email = new Models\User\EmailAddress(array('email' => $lookup));
         return $email->user;
     }
 
@@ -191,15 +193,42 @@ class User extends \TinyDb\Orm
      */
     public function __get_posts()
     {
-        return new \TinyDb\Collection('\FSStack\Gruppe\Models\Post', \TinyDb\Sql::create()
-                                      ->where('userID = ?', $this->userID));
+        return new \TinyDb\Collection('\FSStack\Gruppe\Models\Group\Post', \TinyDb\Sql::create()
+                                      ->join('posts ON (posts.postID = groups_posts.postID)')
+                                      ->where('userID = ?', $this->userID)
+                                      ->group_by('postID')
+                                      ->order_by('created_at DESC'));
+    }
+
+    public function __get_recent_notifications()
+    {
+        $recent_unread = $this->unread_notifications;
+        $recent_read = new \TinyDb\Collection('\FSStack\Gruppe\Models\Notification', \TinyDb\Sql::create()
+                                                                ->where('userID = ?', $this->userID)
+                                                                ->where('is_read = 1')
+                                                                ->limit(5)
+                                                                ->order_by('notificationID DESC'));
+
+        $arr = array();
+        foreach ($recent_unread as $notif) {
+            $arr[] = $notif;
+        }
+
+        foreach ($recent_read as $notif) {
+            if (count($arr) < 5) {
+                $arr[] = $notif;
+            }
+        }
+
+        return $arr;
     }
 
     public function __get_unread_notifications()
     {
         return new \TinyDb\Collection('\FSStack\Gruppe\Models\Notification', \TinyDb\Sql::create()
                                                                 ->where('is_read = 0')
-                                                                ->where('userID = ?', $this->userID));
+                                                                ->where('userID = ?', $this->userID)
+                                                                ->order_by('notificationID DESC'));
     }
 
     public function get_newsfeed_posts($count, $after = NULL)
@@ -227,7 +256,7 @@ class User extends \TinyDb\Orm
      */
     public function associate_email($email_address)
     {
-        return User\EmailAddress::create($this, $email_address);
+        return Models\User\EmailAddress::create($this, $email_address);
     }
 
     /**
@@ -248,11 +277,59 @@ class User extends \TinyDb\Orm
      */
     public function is_member(Group $group)
     {
-        $collection = new \TinyDb\Collection('\FSStack\Gruppe\Models\User', \TinyDb\Sql::create()
-                                             ->where('groupID = ?', $group->groupID)
-                                             ->where('userID = ?', $this->userID)
-                                             ->limit(1));
-        return count($collection) > 0;
+        try {
+            $this->get_group_mapping($group);
+            return TRUE;
+        } catch (\TinyDb\NoRecordException $ex) {
+            return FALSE;
+        }
+    }
+
+    /**
+     * Checks if the user is an owner of the group
+     * @param  Group  $group The group to check
+     * @return boolean       TRUE if the user owns the group, FALSE otherwise
+     */
+    public function owns_group(Group $group)
+    {
+        if (Models\User::is_logged_in() && Models\User::current()->userID == $this->userID && $this->is_admin) {
+            return TRUE;
+        }
+
+        if (!$this->is_member($group)) {
+            return FALSE;
+        }
+
+        return $this->get_group_mapping($group)->is_owner;
+    }
+
+    /**
+     * Gets the mapping between the user and the group. Throws an exception if the user is not in the group.
+     * @param  Group  $group The group to get the mapping for
+     * @return User\Group    User-group mapping
+     */
+    public function get_group_mapping(Group $group)
+    {
+        return new Models\User\Group(array(
+            'userID' => $this->userID,
+            'groupID' => $group->groupID
+        ));
+    }
+
+    public function join_group(Group $group, $is_owner = FALSE)
+    {
+        Models\User\Group::create(array(
+            'userID' => $this->userID,
+            'groupID' => $group->groupID,
+            'is_owner' => $is_owner
+        ));
+    }
+
+    public function __get_all_unjoined_groups()
+    {
+        return new \TinyDb\Collection('\FSStack\Gruppe\Models\Group', \TinyDb\Sql::create()
+                                      ->where('(SELECT COUNT(*) FROM users_groups WHERE users_groups.groupID = groups.groupID AND userID = ?) = 0', $this->userID)
+                                      ->where('is_private = 0'));
     }
 
     /**
@@ -263,7 +340,7 @@ class User extends \TinyDb\Orm
      * @param  string       $downvote_reason Reason for a downvote, required if $vote is -1, ignored otherwise.
      * @return Vote                          The vote object which was cast
      */
-    public function vote(Group $group, Post $post, $vote, $reason)
+    public function vote(Group $group, Post $post, $vote, $reason = NULL)
     {
         return User\Vote::create($this, $group, $post, $vote, $reason);
     }

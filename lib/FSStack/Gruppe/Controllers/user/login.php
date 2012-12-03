@@ -46,6 +46,21 @@ class Login extends \CuteControllers\Base\Rest
 
         $user->first_name = $fb_user->first_name;
         $user->last_name = $fb_user->last_name;
+        $user->about = $fb_user->bio;
+
+        if (isset($fb_user->gender)) {
+            $user->gender = $fb_user->gender;
+        } else {
+            $user->gender = 'undefined';
+        }
+
+        $user->image = 'http://graph.facebook.com/' . $fb_user->id . '/picture?type=large';
+
+        if (isset($fb_user->username)) {
+            $user->handle = $fb_user->username;
+        }
+
+        $user->fb_access_token = $params['access_token'];
         $user->associate_email($fb_user->email);
         $user->update();
 

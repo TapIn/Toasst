@@ -25,3 +25,6 @@
 [submodule ".submodules/php-smartypants"]
 	path = .submodules/php-smartypants
 	url = http://git.michelf.ca/php-smartypants
+[submodule ".submodules/embedly-php"]
+	path = .submodules/embedly-php
+	url = git://github.com/embedly/embedly-php.git

@@ -25,7 +25,10 @@
     <![endif]-->
   </head>
 
-  <body>
+  <body data-groupID='{{ group }}' data-username='{{ current_user.name }}' data-userID='{{ current_user }}'>
+
+    <!-- Button to trigger modal -->
+
 <!-- Begin NavBar -->
       <div class="navbar navbar navbar-fixed-top">
     <div class="navbar-inner">
@@ -38,8 +41,32 @@
         <a class="brand" href="/">Toasst</a>
         <div class="nav-collapse collapse">
           <ul class="nav pull-right">
-            <li><a href="#" class='notification'>8</a></li>
-             <li><a href="/user/me" class="dropdown-toggle nav-username" data-toggle="dropdown"> {{ current_user.name}}</a></li>
+              <li class="dropdown">
+
+                  <a href="#" class="dropdown-toggle notification {% if current_user.unread_notifications | length > 0 %}active{% endif %}" data-toggle="dropdown" onclick='markAllNotificationsAsRead()'>{{ current_user.unread_notifications | length }}
+
+                  {% if  current_user.recent_notifications | length >0 %}
+                    </a>
+                    <ul class="dropdown-menu">
+
+                    {% for notification in current_user.recent_notifications %}
+                      <li><a {% if not notification.is_read %} class='new-notification' {% endif %} href="/g/{{ notification.group }}/t/{{ notification.post.in_reply_to_post }}"><b>{{ notification.source_user.first_name }}</b> replied to your post.
+                      </br>
+                      "{{ notification.post.content | raw | striptags }}"
+                      </a></li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  </a>
+                  <ul class="dropdown-menu">
+                    <li><a>You have no new notifications.</a></li>
+                  </ul>
+                {% endif %}
+              </li>
+
+
+             <li><a href="/u/{{ current_user }}" class="dropdown-toggle nav-username"> {{ current_user.name}}</a></li>
+
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -52,23 +79,40 @@
     <div id='reply-selector' class='reply-selector'>
       <li><a onclick='selectText(this)' ><img src="/assets/img/text.png"></img></a></li>
       <li><a onclick='selectLink(this)' ><img src="/assets/img/link.png"></img></a></li>
-      <li><a onclick='selectPhoto(this)'><img src="/assets/img/photo.png"></img></a></li>
-      <li><a onclick='selectVideo(this)'><img src="/assets/img/video.png"></img></a></li>
+<!--       <li><a onclick='selectPhoto(this)'><img src="/assets/img/photo.png"></img></a></li>
+      <li><a onclick='selectVideo(this)'><img src="/assets/img/video.png"></img></a></li> -->
     </div>
   </div>
 <!-- Hidden text comment -->
 <form id='reply-form' method=post>
-<input id='reply-title' type='text' name="comments" placeholder='title...'></input></br>
+<input class='reply-title' type='text' name="comments" placeholder='title...'></input></br>
 <textarea id='comment-content' name="comments" cols=40 rows=6 placeholder='Type text here...'></textarea>
-<P><button type='button' value="submit" onclick='submitNewComment(this)'>submit</button>
+<button type='button' value="submit" onclick='submitNewComment(this)'>submit</button>
 </form>
 
 <!-- Hidden link comment -->
 <form id='link-form'>
-<input id='reply-title' type='text' name="comments" placeholder='title...'></input></br>
+<input class='reply-title' type='text' name="comments" placeholder='title...'></input></br>
 <input id='link-content' type='text' name="comments" placeholder='http://...'></input>
 <button type='button' onclick='submitNewLink(this)' value="submit">submit</button>
 </form>
+
+<!-- Modal -->
+<div id="new-group" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Create a new group.</h3>
+  </div>
+  <div class="modal-body">
+    <form>
+      <input id='new-group-form' type='text' placeholder='Enter group name...'></input>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <button class="btn btn-primary" onclick='newGroup()'>Create new group</button>
+  </div>
+</div>
 
 <!-- End Hidden Selectors -->
 
@@ -104,6 +148,7 @@
     <script src="/assets/js/jquery.js"></script>
     <script src="/assets/js/js.js"></script>
     <script src="/assets/js/bootstrap-dropdown.js"></script>
+    <script src="/assets/js/bootstrap-modal.js"></script>
     <script src="/assets/js/timeago.js"></script>
 
 </body>
@@ -115,3 +160,4 @@ jQuery(document).ready(function() {
   jQuery("span.timeago").timeago();
 });
 </script>
+

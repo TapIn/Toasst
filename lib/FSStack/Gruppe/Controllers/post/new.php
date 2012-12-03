@@ -19,7 +19,8 @@ class New2 extends \CuteControllers\Base\Rest
         $post = Models\Post::create(Models\User::current(), $type, $title, $content, $group);
 
         if ($postID) {
-            Models\Notification::create('reply', new Models\Post($postID), $group, Models\User::current());
+            $parent_post = new Models\Post($postID);
+            Models\Notification::create('reply', $post, $group, Models\User::current(), $parent_post->user);
             $post->in_reply_to_postID = $postID;
             $post->update();
         }

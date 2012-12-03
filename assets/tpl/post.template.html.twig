@@ -1,25 +1,56 @@
-<div class='post-container' data-postID='{{ grouppost.post }}' data-groupID=' {{ grouppost.group }}'>
+<div class='post-container' data-postID='{{ grouppost.post }}' data-groupID='{{ grouppost.group }}'>
         <div class='container-fluid'>
           {% if grouppost.post.title %}
-          <a class='post-title' href='/t/{{ grouppost.post }}'>{{ grouppost.post.title }}</a><span class='post-delimiter'></span>
+          <a class='post-title' href='/g/{{ grouppost.group }}/t/{{ grouppost.post }}'>{{ grouppost.post.title }}</a><span class='post-delimiter'></span>
           {% endif %}
           <div>
-            <div class='post-voting'>
-              <div class='upvote'>Ʌ</div>
-              <div class='downvote'>V</div>
-            </div>
-            <div class='container-fluid post-body' onmouseover='fadeInEditDongle(this)' onmouseout='fadeOutEditDongle(this)'>
-              {{ grouppost.post.content|raw }}
-              <div class=' container-fluid post-footer'>
-                <li><a class='post-username' href='user/{{ grouppost.post.user }}'>{{ grouppost.post.user.name }}</a></li>
-                <li><span class='light'>to</span> <a class='post-topic' href='/g/{{ grouppost.group.link_name }}'>{{ grouppost.group.name }}</a></li>
-                <li><span class='post-timestamp timeago' title='2008-07-17T09:24:17Z'></span></li>
-                <!-- {{ grouppost.post.created_at | date}} -->
 
+            <div class='post-voting'>
+              {% if grouppost.my_vote > 0 %}
+                <div class='upvote active' onclick='newVote(this, 0)'>Ʌ</div>
+              {% else %}
+                <div class='upvote' onclick='newVote(this, 1)'>Ʌ</div>
+              {% endif %}
+              <div class='score'>{{ grouppost.score }}</div>
+              {% if grouppost.my_vote < 0 %}
+               <div class='downvote active' onclick='newVote(this , 0)'>V</div>
+              {% else %}
+               <div class='downvote' onclick='newVote(this , -1)'>V</div>
+              {% endif %}
+
+            </div>
+            {% if grouppost.post.type == 'text' %}
+            {% else %}
+              <div class='link-preview' style="background-image:url('{{grouppost.post.thumbnail_url}}')"></div>
+            {% endif %}
+            <div class='container-fluid post-body' onmouseover='fadeInEditDongle(this)' onmouseout='fadeOutEditDongle(this)'>
+
+              {% if grouppost.post.type == 'link' %}
+              <a href='{{ grouppost.post.content|raw }}'>
+                {{ grouppost.post.content|raw }}
+              </a>
+              {% elseif grouppost.post.type == 'video' %}
+                {{ grouppost.post.embed_html |raw }}
+              {% elseif grouppost.post.type == 'image' %}
+                <img src='{{ grouppost.post.content|raw }}' />
+              {% else %}
+                {{ grouppost.post.content|raw }}
+              {% endif %}
+
+              <div class=' container-fluid post-footer'>
+                <li><a class='post-username' href='u/{{ grouppost.post.user }}'>{{ grouppost.post.user.name }}</a></li>
+                <li>
+                    <span class='light'>to</span> <a class='post-topic label'
+                     {% if grouppost.group.color %}
+                        style="background-color: #{{ grouppost.group.color }}"
+                     {% endif %}
+                     href='/g/{{ grouppost.group.link_name }}'>{{ grouppost.group.name }}</a>
+                 </li>
+                <li><span class='post-timestamp timeago' title='{{ grouppost.post.created_at | date('c')}}'></span></li>
                 <div class='edit-dongle'>
 <!--                 <li><a href=''><i class="post-icon icon-pencil" onclick='showReplySelector(this)'></i></a></li>
  -->                <li><a href=''><i class="post-icon icon-random"></i></a></li>
-                <li><a href='/g/{{ grouppost.group }}/t/{{ grouppost.post.user }}'><i class="post-icon icon-comment"></i></a></li>
+                <li><a href='/g/{{ grouppost.group }}/t/{{ grouppost.post }}'><i class="post-icon icon-comment"></i></a></li>
               </div>
               </div>
             </div>

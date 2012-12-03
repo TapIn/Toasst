@@ -1,5 +1,9 @@
 {% extends "main.template.html.twig" %}
-{% block title %}{{ post.title }}{% endblock %}
+{% block sidebar %}
+  {% include 'sidebar.html.twig' %}
+{% endblock %}
 {% block content %}
-  {% include 'reply.post.html.twig' %}
+    {% block post %}     
+    {% include 'reply.post.html.twig' %}
+    {% endblock %}
 {% endblock %}

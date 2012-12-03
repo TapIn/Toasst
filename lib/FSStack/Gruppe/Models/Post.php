@@ -63,6 +63,10 @@ class Post extends \TinyDb\Orm
      */
     protected $modified_at;
 
+    protected $thumbnail_url;
+
+    protected $embed_html;
+
     /**
      * Gets the user object for the user who made the original post. Magic getter for $post->user.
      * @return User User object for the user who made the original post.
@@ -87,12 +91,31 @@ class Post extends \TinyDb\Orm
             'userID' => $user->userID
         );
 
+        if ($type !== 'text') {
+            $oembed = (Array)\Application::$embedly->oembed($content);
+
+            $type = $oembed['type'];
+            if ($type === 'photo') {
+                $type = 'image';
+            }
+
+            if (isset($oembed['thumbnail_url'])) {
+                $model_data['thumbnail_url'] = $oembed['thumbnail_url'];
+            }
+            if (isset($oembed['title'])) {
+                $model_data['title'] = $oembed['title'];
+            } else {
+                $model_data['title'] = $content;
+            }
+        }
+
         switch ($type) {
             case 'image':
                 $model_data['image'] = $content;
                 break;
             case 'video':
                 $model_data['video'] = $content;
+                $model_data['embed_html'] = $oembed['html'];
                 break;
             case 'link':
                 $model_data['link'] = $content;
@@ -107,6 +130,7 @@ class Post extends \TinyDb\Orm
 
         $model = parent::create($model_data);
         Models\Group\Post::create($group, $model);
+        $user->vote($group, $model, 1);
 
         return $model;
     }

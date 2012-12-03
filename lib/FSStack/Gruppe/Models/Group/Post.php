@@ -48,6 +48,21 @@ class Post extends \TinyDb\Orm
      */
     protected $modified_at;
 
+    public function __get_my_vote()
+    {
+        try {
+            $model = new Models\User\Vote(array(
+                'userID' => Models\User::current()->userID,
+                'groupID' => $this->groupID,
+                'postID' => $this->postID
+            ));
+
+            return $model->vote;
+        } catch (\Exception $ex) {
+            return 0;
+        }
+    }
+
     public static function create(Models\Group $group, Models\Post $post, Models\User $reposted_by_user = NULL)
     {
         $model_data = array(
@@ -73,12 +88,6 @@ class Post extends \TinyDb\Orm
                                       ->join('posts ON (groups_posts.postID = posts.postID)')
                                       ->where('posts.in_reply_to_postID = ?', $this->postID));
         return $collection;
-    }
-
-    public function __get_test()
-    {
-        echo "<h1>OMG</h1>";
-        exit;
     }
 
     /**

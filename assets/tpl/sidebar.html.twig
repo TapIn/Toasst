@@ -1,0 +1,30 @@
+<div class="row-fluid">
+    <div class="span2 user-sidebar">
+      <div class="sidebar-nav">
+        <ul class="nav nav-list user-actions">
+          <li><div class='user-icon-med'><img src="{{ current_user.image }}"></div></li>
+        <!--   <li class="nav-header">You</li>
+          <li><a href="#">Followers <span class='user-actions-count'>(23)</span></a></li>
+          <li><a href="#">Following <span class='user-actions-count'>(23)</span></a></li> -->
+<!--            <li><a href="http://toasst.com/feed.bread">Feed</a></li>
+ -->          <li class="nav-header">Your Groups</li>
+          {% for this_group in current_user.groups %}
+            <li {% if this_group == group %} class='active' {% endif %}><a href="/g/{{ this_group }}">{{ this_group.name }}</a></li>
+          {% endfor %}
+
+          <li class="nav-header">Other Groups</li>
+
+          {% for this_group in current_user.all_unjoined_groups %}
+            <li  {% if this_group == group %} class='active' {% endif %}><a href="/g/{{ this_group }}">{{ this_group.name }}</a></li>
+          {% endfor %}
+
+            <li><a href="#new-group" data-toggle="modal">+ Topic</a></li>
+            <li class="nav-header">Members</li>
+            
+          {% for user in group.members %}
+            <li data-userID="{{ user }}"><a  href="/u/{{ user }}">{{ user.name }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="span10 user-posts">

@@ -13,7 +13,7 @@
               <div class='container-fluid post-footer'>
                 <li><a class='post-username' href='user/{{ gpost.post.user }}'>{{ gpost.post.user.name }}</a></li>
                 <li><span class='light'>to</span> <a class='post-topic' href='/g/{{ gpost.group.link_name }}'>{{ gpost.group.name }}</a></li>
-                <li><span class='post-timestamp timeago' title='2008-07-17T09:24:17Z'></span></li>
+                <li><span class='post-timestamp timeago' title='{{ gpost.post.created_at | date('c')}}'></span></li>
                 <div class='edit-dongle'>
                 <li><a><i class="post-icon icon-pencil" onclick='showReplySelector(this)'></i></a></li>
                 <li><a href=''><i class="post-icon icon-random"></i></a></li>

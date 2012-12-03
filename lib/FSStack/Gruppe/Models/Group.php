@@ -49,6 +49,17 @@ class Group extends \TinyDb\Orm
      */
     protected $short_name;
 
+    public static function from_short_name_or_id($short_name_or_id)
+    {
+        if (is_numeric($short_name_or_id)) {
+            return new self($short_name_or_id);
+        } else {
+            return new self(array(
+                'short_name' => $short_name_or_id
+            ));
+        }
+    }
+
     /**
      * Gets the short name if one exists, otherwise returns the groupID. Magic getter for $group->link_name
      * @return string The name of the group for use in URLs
