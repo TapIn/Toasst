@@ -84,14 +84,14 @@ class Post extends \TinyDb\Orm
      * @param  Group  $group   The group to post in
      * @return Post            Created post object
      */
-    public static function create(Models\User $user, $type, $title = NULL, $content, Group $group)
+    public static function create(Models\User $user, $title = NULL, $content, Group $group)
     {
         $model_data = array(
             'title' => $title,
             'userID' => $user->userID
         );
 
-        if ($type !== 'text') {
+        if (preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $content)) {
             $oembed = (Array)\Application::$embedly->oembed($content);
 
             $type = $oembed['type'];
@@ -102,10 +102,13 @@ class Post extends \TinyDb\Orm
             if (isset($oembed['thumbnail_url'])) {
                 $model_data['thumbnail_url'] = $oembed['thumbnail_url'];
             }
-            if (isset($oembed['title'])) {
-                $model_data['title'] = $oembed['title'];
-            } else {
-                $model_data['title'] = $content;
+
+            if (!isset($title)) {
+                if (isset($oembed['title'])) {
+                    $model_data['title'] = $oembed['title'];
+                } else {
+                    $model_data['title'] = $content;
+                }
             }
         }
 
@@ -121,10 +124,8 @@ class Post extends \TinyDb\Orm
                 $model_data['link'] = $content;
                 break;
             case 'text':
+            default;
                 $model_data['markdown'] = $content;
-                break;
-            default:
-                throw new \Exception("Unknown post type");
                 break;
         }
 
@@ -215,7 +216,7 @@ class Post extends \TinyDb\Orm
      */
     public function __get_is_reply()
     {
-        return isset($this->in_reply_to_postID);
+        return $this->in_reply_to_postID;
     }
 
     /**

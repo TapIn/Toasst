@@ -55,16 +55,17 @@ class Settings extends GroupController
 
     public function __post_image()
     {
-        $image = $this->request->post('image');
-        $icon = $this->request->post('icon');
+        $type = $this->request->post('type');
+        $url = $this->request->post('url');
 
-        if ($image !== NULL) {
-            $this->group->image = $image;
-        } else if ($icon !== NULL) {
-            $this->group->icon = $icon;
+        if ($type == 'large') {
+            $this->group->image = $url;
+        } else if ($type == 'small') {
+            $this->group->icon = $url;
         }
 
         $this->group->update();
+        return array('success' => TRUE);
     }
 
     public function __post_invite()

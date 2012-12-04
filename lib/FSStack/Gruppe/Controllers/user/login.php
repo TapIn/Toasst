@@ -13,7 +13,12 @@ class Login extends \CuteControllers\Base\Rest
 
     public function __get_fb()
     {
-        $redirect_uri = \CuteControllers\Router::link('/user/login/fb_callback.bread', TRUE);
+        $invite = $this->request->request('invite');
+        if ($invite) {
+            $redirect_uri = \CuteControllers\Router::link("/user/login/fb_callback.bread?invite=$invite", TRUE);
+        } else {
+            $redirect_uri = \CuteControllers\Router::link("/user/login/fb_callback.bread", TRUE);
+        }
         $redirect_uri = urlencode($redirect_uri);
 
         $client_id = '375793235846832';
@@ -23,7 +28,13 @@ class Login extends \CuteControllers\Base\Rest
 
     public function __get_fb_callback()
     {
-        $redirect_uri = \CuteControllers\Router::link('/user/login/fb_callback.bread', TRUE);
+        $invite = $this->request->request('invite');
+        if ($invite) {
+            $redirect_uri = \CuteControllers\Router::link("/user/login/fb_callback.bread?invite=$invite", TRUE);
+        } else {
+            $redirect_uri = \CuteControllers\Router::link("/user/login/fb_callback.bread", TRUE);
+        }
+        $redirect_uri = urlencode($redirect_uri);
 
         $code = $this->request->get('code');
         $client_id = '375793235846832';
@@ -41,12 +52,28 @@ class Login extends \CuteControllers\Base\Rest
         try {
             $user = Models\User::get_from_email($fb_user->email);
         } catch (\TinyDb\NoRecordException $ex) {
-            $user = Models\User::create($fb_user->first_name, $fb_user->last_name, $fb_user->email);
+            if ($invite) {
+                try {
+                    $invite_obj = new Models\Invite($invite);
+                    $user = Models\User::create($fb_user->first_name, $fb_user->last_name, $fb_user->email);
+                    foreach ($invite_obj->to_join_groups as $group) {
+                        $user->join_group($group);
+                    }
+                } catch (\Exception $ex) {
+                    echo "Your code was invalid. $ex";
+                }
+            } else {
+                echo "Sorry, you need an invite code to register.";
+                exit;
+            }
         }
 
         $user->first_name = $fb_user->first_name;
         $user->last_name = $fb_user->last_name;
-        $user->about = $fb_user->bio;
+
+        if (isset($fb_user->bio)) {
+            $user->about = $fb_user->bio;
+        }
 
         if (isset($fb_user->gender)) {
             $user->gender = $fb_user->gender;

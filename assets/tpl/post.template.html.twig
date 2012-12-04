@@ -1,59 +1,81 @@
-<div class='post-container' data-postID='{{ grouppost.post }}' data-groupID='{{ grouppost.group }}'>
-        <div class='container-fluid'>
-          {% if grouppost.post.title %}
-          <a class='post-title' href='/g/{{ grouppost.group }}/t/{{ grouppost.post }}'>{{ grouppost.post.title }}</a><span class='post-delimiter'></span>
-          {% endif %}
-          <div>
+<div class='post-container'  data-postID='{{ gpost.postID }}' data-groupID='{{ gpost.group }}'>
+  <div class='container-fluid'>
 
-            <div class='post-voting'>
-              {% if grouppost.my_vote > 0 %}
-                <div class='upvote active' onclick='newVote(this, 0)'>Ʌ</div>
-              {% else %}
-                <div class='upvote' onclick='newVote(this, 1)'>Ʌ</div>
-              {% endif %}
-              <div class='score'>{{ grouppost.score }}</div>
-              {% if grouppost.my_vote < 0 %}
-               <div class='downvote active' onclick='newVote(this , 0)'>V</div>
-              {% else %}
-               <div class='downvote' onclick='newVote(this , -1)'>V</div>
-              {% endif %}
+    <div>
 
-            </div>
-            {% if grouppost.post.type == 'text' %}
-            {% else %}
-              <div class='link-preview' style="background-image:url('{{grouppost.post.thumbnail_url}}')"></div>
-            {% endif %}
-            <div class='container-fluid post-body' onmouseover='fadeInEditDongle(this)' onmouseout='fadeOutEditDongle(this)'>
+      <div class='post-voting'>
+        {% if gpost.my_vote > 0 %}
+        <div class='upvote active' onclick='newVote(this, 0)'>Ʌ</div>
+        {% else %}
+        <div class='upvote' onclick='newVote(this, 1)'>Ʌ</div>
+        {% endif %}
+        <div class='score'>{{ gpost.score }}</div>
+        {% if gpost.my_vote < 0 %}
+        <div class='downvote active' onclick='newVote(this , 0)'>V</div>
+        {% else %}
+        <div class='downvote' onclick='newVote(this , -1)'>V</div>
+        {% endif %}
 
-              {% if grouppost.post.type == 'link' %}
-              <a href='{{ grouppost.post.content|raw }}'>
-                {{ grouppost.post.content|raw }}
-              </a>
-              {% elseif grouppost.post.type == 'video' %}
-                {{ grouppost.post.embed_html |raw }}
-              {% elseif grouppost.post.type == 'image' %}
-                <img src='{{ grouppost.post.content|raw }}' />
-              {% else %}
-                {{ grouppost.post.content|raw }}
-              {% endif %}
-
-              <div class=' container-fluid post-footer'>
-                <li><a class='post-username' href='u/{{ grouppost.post.user }}'>{{ grouppost.post.user.name }}</a></li>
-                <li>
-                    <span class='light'>to</span> <a class='post-topic label'
-                     {% if grouppost.group.color %}
-                        style="background-color: #{{ grouppost.group.color }}"
-                     {% endif %}
-                     href='/g/{{ grouppost.group.link_name }}'>{{ grouppost.group.name }}</a>
-                 </li>
-                <li><span class='post-timestamp timeago' title='{{ grouppost.post.created_at | date('c')}}'></span></li>
-                <div class='edit-dongle'>
-<!--                 <li><a href=''><i class="post-icon icon-pencil" onclick='showReplySelector(this)'></i></a></li>
- -->                <li><a href=''><i class="post-icon icon-random"></i></a></li>
-                <li><a href='/g/{{ grouppost.group }}/t/{{ grouppost.post }}'><i class="post-icon icon-comment"></i></a></li>
-              </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
+
+      <div class='container-fluid post-body' onmouseover='fadeInEditDongle(this)' onmouseout='fadeOutEditDongle(this)'>
+        {% if gpost.post.title %}
+        <a class='post-title' href='/g/{{ gpost.group }}/t/{{ gpost.postID }}'>{{ gpost.post.title }}</a>
+        {% endif %}
+
+        {% if gpost.post.type == 'link' %}
+        <a class='link-preview' href='{{ gpost.post.content }}' style="background-image:url('{{gpost.post.thumbnail_url}}')"></a>
+        {% endif %}
+
+        {% if gpost.post.type == 'link' %}
+        <a href='{{ gpost.post.content|raw }}'>
+          {{ gpost.post.content|raw }}
+        </a>
+        {% elseif gpost.post.type == 'video' %}
+        {{ gpost.post.embed_html |raw }}
+        {% elseif gpost.post.type == 'image' %}
+        <a href='{{ gpost.post.content|raw }}'><img class='link-image' src='{{ gpost.post.content|raw }}' /></a>
+        {% else %}
+        {{ gpost.post.content|raw }}
+        {% endif %}
+
+        <div class='container-fluid post-footer'>
+          <li><a class='post-username' href='/u/{{ gpost.post.user }}'>{{ gpost.post.user.name }}</a></li>
+          <li>
+            <span class='light'>to</span>
+            <a href='/g/{{ gpost.group.link_name }}'>{{ gpost.group | group_nametag }}</a>
+          </li>
+          <li><span class='post-timestamp timeago' title='{{ gpost.post.created_at | date('c')}}'></span></li>
+            <li><a style='cursor:pointer' onclick='showReplySelector(this{% if is_post_page %},1{% endif %})'>reply </a></li>
+           {% if is_user_page and gpost.post.is_reply %}
+              <li><a  class='comment-icon'  href='/g/{{ gpost.group }}/t/{{ gpost.post.in_reply_to_postID }}#{{ gpost.postID }}'>{{ gpost.nested_reply_count }} {% if gpost.nested_reply_count == 1 %}comment{% else %}comments{% endif %}</a></li>
+            {% elseif is_reply %}
+              <div class='edit-dongle'>
+              <li><a  class='comment-icon' href='/g/{{ gpost.group }}/t/{{ gpost.post }}#{{ gpost.postID }}'>permalink</a></li>
+            {% else %}
+              <li><a   class='comment-icon' href='/g/{{ gpost.group }}/t/{{ gpost.postID }}'>{{ gpost.nested_reply_count }} {% if gpost.replies|length==1 %}comment{% else %}comments{% endif %}</a></li>
+            {% endif %}
+
+
+            {% if not is_reply %}
+              <div class='edit-dongle'>
+            {% endif %}
+            {% if gpost.has_parent_post %}<li><a href='{{ gpost.parent_post }}' style='cursor:pointer'>parent</a></li>{% endif %}
+
+<!--              <li><a href=''><i class="post-icon icon-random"></i></a></li>
+
+-->        
+</div>
+</div>
+</div>
+</div>
+{% if is_post_page %}
+{% for greply in gpost.replies %}
+{% set gpost = greply %}
+{% set is_reply = 1 %}
+{% set post = greply.post %}
+{% include 'post.template.html.twig' %}
+{% endfor %}
+{% endif %}
+</div>
+</div>

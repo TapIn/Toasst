@@ -3,7 +3,15 @@
   {% include 'sidebar.html.twig' %}
 {% endblock %}
 {% block content %}
-    {% block post %}     
-    {% include 'reply.post.html.twig' %}
+    <div class="span10 user-posts">
+      <div class="container-fluid">
+	<div class="posts-title">
+            <span class="title-text">Post in {{ gpost.group.name }}</span>
+        </div>
+      </div>
+      <div class="posts-contents">
+    {% block post %}
+    {% set is_post_page = 1 %}
+    {% include 'post.template.html.twig' %}
     {% endblock %}
 {% endblock %}

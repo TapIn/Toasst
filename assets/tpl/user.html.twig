@@ -1,26 +1,30 @@
 {% extends "main.template.html.twig" %}
 
 {% block sidebar %}
-   <div class="row-fluid">
     <div class="span2 user-sidebar">
       <div class="sidebar-nav">
         <ul class="nav nav-list user-actions">
           <li><div class='user-icon-med'><img src="{{ user.image }}"></div></li>
-<!--           <li><a href="#">Followers <span class='user-actions-count'>(23)</span></a></li>
-          <li><a href="#">Following <span class='user-actions-count'>(23)</span></a></li> -->
+          <li class="nav-header">{{ user.first_name }}'s Groups</li>
+          {% for group in user.groups %}
+            <li><a href="/g/{{ group }}">{{ group.name }}</a></li>
+          {% endfor %}
         </ul>
       </div>
-    </div>    
+    </div>
+{% endblock %}
+
+{% block content %}
     <div class="span10 user-posts">
       <div class='container-fluid'>
         <div class="posts-title">
           <span class='title-text'>{{ user.name }}'s post</span><!-- <a href="#" class="btn disabled title-action">+ follow</a> -->
         </div>
-{% endblock %}
-
-{% block content %}
-{% for grouppost in user.posts %}
-    {% block post %}     
+      </div>
+<div class="posts-contents">
+{% for gpost in user.posts %}
+    {% block post %}
+        {% set is_user_page = 1 %}
         {% include 'post.template.html.twig' %}
     {% endblock %}
 {% endfor %}

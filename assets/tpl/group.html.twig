@@ -1,24 +1,28 @@
 {% extends "main.template.html.twig" %}
-{% block sidebar %}
-  {% include 'sidebar.html.twig' %}
-      <div class='container-fluid'>
-        <div class="posts-title">
-          <span class='title-text'>{{ group.name }}</span>
-          <a id='follow-btn' class="post-btn btn disabled title-action" onclick='followGroup()'>{% if current_user.is_member(group) %} unfollow group {% else %}follow group{% endif %}</a>
-          <a class="post-btn btn disabled title-action" onclick='showReplySelector(this)'>+ post</a>
-          {% if current_user.owns_group(group) %}
-            <a href="/g/{{ group.groupID }}/settings" class="post-btn btn title-action">Settings</a>
-          {% endif %}
-        </div>
-        </div>{% endblock %}
 {% block content %}
-{% if group.get_newsfeed_posts() | length < 1 %}
+<div class="span10 user-posts">
+  <div class='container-fluid'>
+    <div class="posts-title">
+      <img class='group-icon' src='{{ group.image }}' /><span class='title-text'>{{ group.name }}</span>
+      <a id='follow-btn' class="post-btn btn disabled title-action" onclick='followGroup()'>{% if current_user.is_member(group) %} unfollow group {% else %}follow group{% endif %}</a>
+      <a class="post-btn btn title-action actual-post-button" onclick='showReplySelector(this,1)'>+ post</a>
+      {% if current_user.owns_group(group) %}
+      <a href="/g/{{ group.link_name }}/settings.bread" class="post-btn btn title-action">Settings</a>
+      {% endif %}
+      {% if group.description %}
+      <span style='display:block' class='subtitle'>{{ group.description }}</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="posts-contents">
+  {% if group.get_newsfeed_posts() | length < 1 %}
   <div class='post-container' style='margin-left: 20px'><p>There are no posts right now. Click the post button to post above something awesome!</p></div>
-{% endif %}
-{% for grouppost in group.get_newsfeed_posts() %}
-{% block post %}
-    {% include 'post.template.html.twig' %}
+  {% endif %}
+  {% for gpost in group.get_newsfeed_posts() %}
+  {% block post %}
+  {% set is_group_page = 1 %}
+  {% include 'post.template.html.twig' %}
+  {% endblock %}
+  {% endfor %}
 {% endblock %}
-{% endfor %}
 
-{% endblock %}

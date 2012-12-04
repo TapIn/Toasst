@@ -1,26 +1,13 @@
 {% extends "main.template.html.twig" %}
-{% block sidebar %}
-   <div class="row-fluid">
-    <div class="span2 user-sidebar">
-      <div class="sidebar-nav">
-        <ul class="nav nav-list user-actions">
-          <li class="nav-header">Members</li>
-          {% for user in group.members %}
-          <li><a href="/u/{{ user }}">{{ user.name }}</a></li>
-          {% endfor %}
-          <li><a href="#"></a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="span10 user-posts">
-      <div class='container-fluid'>
-        <div class="posts-title">
-          <span class='title-text'>{{ group.name }}</span><a href="/g/{{ group.groupID }}" class="post-btn btn title-action">Back</a>
-        </div>
-        </div>
-{% endblock %}
 {% block content %}
-    <h2>Settings</h2>
+<div class="span10 user-posts">
+  <div class='container-fluid'>
+    <div class="posts-title">
+    	<span class="title-text">Settings {% if current_user.is_admin %}(ID {{ group.groupID }}){% endif %}</span>
+    </div>
+  </div>
+
+  <div class="posts-contents">
     <form method="post" class="form-horizontal">
         <fieldset>
 
@@ -76,6 +63,20 @@
                             placeholder="Color" value="{{ group.color }}" />
                     </div>
                     <h3>Icon</h3>
+                    <div>
+                        <div class="group-icon large"
+                            {% if group.image %}
+                                style="background: #fff url('{{ group.image }}')"
+                                data-image="{{ group.image }}"
+                            {% endif %}
+                        ></div>
+                        <div class="group-icon small"
+                            {% if group.image %}
+                                style="background: #fff url('{{ group.icon }}')"
+                                data-image="{{ group.icon }}"
+                            {% endif %}
+                        ></div>
+                    </div>
                 </div>
             </div>
 
@@ -103,34 +104,125 @@
             <input type="submit" class="btn btn-primary pull-right" value="Update" />
         </fieldset>
     </form>
+</div>
+  <div class='container-fluid'>
+    <div class="posts-title">
+        <span class="title-text">Members</span>
+    </div>
+    <div class="posts-contents">
+    <table class="table table-condensed">
+        <thead>
+            <tr>
+                <td>#</td>
+                <td>First Name</td>
+                <td>Last Name</td>
+                <td>Admin Controls</td>
+                <td>Kick</td>
+            </tr>
+        </thead>
 
-    {% if current_user.is_admin %}
-        <form method="post" action="/g/{{ group.groupID }}/settings/delete">
-            <input type="submit" class="btn btn-inverse" value="Delete" />
-        </form>
-    {% endif %}
-
-    <h1>Members</h1>
-    <ul>
+        {% set i = 0 %}
         {% for member in group.members %}
-            <li>
-                {{ member.name }}
-                {% if member.owns_group(group) %}
-                    <form style="display:inline" method="post" action="/g/{{ group.groupID }}/settings/demote_owner">
-                        <input type="hidden" name="userID" value="{{ member.userID }}" />
-                        <input type="submit" class="btn btn-mini btn-warning" value="Demote" />
-                    </form>
-                {% else %}
-                    <form style="display:inline" method="post" action="/g/{{ group.groupID }}/settings/promote_owner">
-                        <input type="hidden" name="userID" value="{{ member.userID }}" />
-                        <input type="submit" class="btn btn-mini btn-success" value="Promote" />
-                    </form>
+            {% set i = i + 1 %}
+            <tr>
+                <td>{{ i }}</td>
+                <td>{{ member.first_name }}</td>
+                <td>{{ member.last_name }}</td>
+                <td>
+                    {% if member.owns_group(group) %}
+                        <form style="display:inline" method="post" action="/g/{{ group.groupID }}/settings/demote_owner">
+                            <input type="hidden" name="userID" value="{{ member.userID }}" />
+                            <input type="submit" class="btn btn-mini btn-warning" value="Demote" />
+                        </form>
+                    {% else %}
+                        <form style="display:inline" method="post" action="/g/{{ group.groupID }}/settings/promote_owner">
+                            <input type="hidden" name="userID" value="{{ member.userID }}" />
+                            <input type="submit" class="btn btn-mini btn-success" value="Promote" />
+                        </form>
+                    {% endif %}
+                </td>
+                <td>
                     <form style="display:inline" method="post" action="/g/{{ group.groupID }}/settings/kick">
                         <input type="hidden" name="userID" value="{{ member.userID }}" />
                         <input type="submit" class="btn btn-mini btn-danger" value="Kick" />
                     </form>
-                {% endif %}
-            </li>
+                </td>
+            </tr>
         {% endfor %}
-    </ul>
+
+    </table>
+    </div>
+</div>
+{% if current_user.is_admin %}
+    <div class="container-fluid">
+        <div class="post-title">
+            <span class="title-text">Admin Settings</span>
+        </div>
+        <div class="post-contents">
+                <form method="post" action="/g/{{ group.groupID }}/settings/delete">
+                    <a href='#delete-group' class="btn btn-inverse" data-toggle="modal" role="button" />Delete</a>
+                </form>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+    <script type="text/javascript">
+        $('.group-icon').click(function()
+        {
+            var self = $(this);
+            var small = $('.group-icon.small');
+            var large = $('.group-icon.large');
+
+            var setImage = function(type, url, onSuccess)
+            {
+                var action_item = (type == 'small')? small : large;
+                var s = (type == 'small')? 16 : 80;
+                url += '/convert?fit=crop&w=' + s + '&h=' + s;
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/g/{{ group.groupID }}/settings/image.json',
+                    data: {
+                        type: type,
+                        url: url
+                    },
+                    success: function()
+                    {
+                        action_item.css('background', "#fff url('" + url + "')");
+                        if (typeof(onSuccess) !== 'undefined') {
+                            onSuccess();
+                        }
+                    }
+                })
+            }
+
+            filepicker.pick(
+                {
+                    mimetype: 'image/*',
+                    services: ['COMPUTER', 'URL', 'IMAGE_SEARCH']
+                },
+                function(fpfile)
+                {
+                    var picked_type = 'large';
+                    if (self.hasClass('small')) {
+                        picked_type = 'small';
+                    }
+
+                    var otherType = (picked_type == 'small')? 'large' : 'small';
+                    var other = (picked_type == 'small')? large : small;
+                    var otherAttr = other.attr('data-image');
+                    var successLambda = function(){};
+
+                    if (typeof(otherAttr) === 'undefined' || otherAttr === false) {
+                        successLambda = function(){
+                            setImage(otherType, fpfile.url);
+                        };
+                    }
+
+                    setImage(picked_type, fpfile.url, successLambda);
+                }
+            );
+        })
+    </script>
 {% endblock %}

@@ -1,0 +1,22 @@
+{% extends "main.template.html.twig" %}
+{% block content %}
+<div class="span10 user-posts">
+  <div class='container-fluid'>
+    <h1>Directory</h1>
+    <ul class="directory">
+        {% for user in group.members %}
+            <li>
+                <img src="{{ user.image }}" />
+                <div class="user-info">
+                    <div class="real-name">
+                        <span class="first-name">{{ user.first_name }}</span>
+                        <span class="last-name">{{ user.last_name }}</span>
+                    </div>
+                    <div class="email">
+                        {{ user.emails[0].email }}
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "main.template.html.twig" %}
+{% block content %}
+<div class="span10 user-posts">
+    <div class='container-fluid'>
+        <div class="posts-title">
+            <span class="title-text">Invite Codes</span>
+        </div>
+
+        <div class="posts-contents">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <td>Code</td>
+                        <td>Group IDs to join (csv)</td>
+                        <td>Action</td>
+                    </tr>
+                </thead>
+                {% for invite in invites %}
+                    <tr>
+                        <form method="post">
+                            <td><input type="text" name="code" readonly="true" value="{{ invite.code }}" /></td>
+                            <td><input type="text" name="to_join_groupIDs" autocomplete="off" value="{{ invite.to_join_groupIDs }}" /></td>
+                            <td>
+                                <input type="submit" class="btn btn-primary" value="Update" />
+                                <button class="btn btn-danger" name="delete" value="true">Expire</button>
+                            </td>
+                        </form>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <form method="post" action="/admin/invites/new.bread">
+                        <td><input type="text" name="code" value="" /></td>
+                        <td><input type="text" name="to_join_groupIDs" autocomplete="off" value="" /></td>
+                        <td><input type="submit" class="btn btn-success" value="Create" /></td>
+                    </form>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

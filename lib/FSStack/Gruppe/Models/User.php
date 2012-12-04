@@ -111,6 +111,12 @@ class User extends \TinyDb\Orm
      */
     protected $display_languageID;
 
+    public function __get_emails()
+    {
+        return new \TinyDb\Collection('\FSStack\Gruppe\Models\User\EmailAddress', \TinyDb\Sql::create()
+                                      ->where('userID = ?', $this->userID));
+    }
+
     /**
      * The user's display language. Magic getter method for $user->display_language.
      * @return Language The user's display language

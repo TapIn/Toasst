@@ -1,7 +1,7 @@
 <div class='post-container' data-postID='{{ gpost.post }}' data-groupID='{{ gpost.group }}'>
         <div class='container-fluid'>
           {% if gpost.post.title %}
-          <a class='post-title' href='/t/{{ gpost.post }}'>{{ gpost.post.title }}</a><span class='post-delimiter'></span>
+          <a class='post-title' href='/g/{{gpost.group}}/t/{{ gpost.post }}'>{{ gpost.post.title }}</a><span class='post-delimiter'></span>
           {% endif %}
           <div>
             <div class='post-voting'>

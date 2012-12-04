@@ -1,30 +1,50 @@
-<div class="row-fluid">
-    <div class="span2 user-sidebar">
-      <div class="sidebar-nav">
-        <ul class="nav nav-list user-actions">
-          <li><div class='user-icon-med'><img src="{{ current_user.image }}"></div></li>
-        <!--   <li class="nav-header">You</li>
-          <li><a href="#">Followers <span class='user-actions-count'>(23)</span></a></li>
-          <li><a href="#">Following <span class='user-actions-count'>(23)</span></a></li> -->
-<!--            <li><a href="http://toasst.com/feed.bread">Feed</a></li>
- -->          <li class="nav-header">Your Groups</li>
-          {% for this_group in current_user.groups %}
-            <li {% if this_group == group %} class='active' {% endif %}><a href="/g/{{ this_group }}">{{ this_group.name }}</a></li>
-          {% endfor %}
+<div class="span2 user-sidebar">
+  <div class="sidebar-nav">
+    <ul class="nav nav-list user-actions">
+      <li><div class='user-icon-med'><img src="{{ current_user.image }}"></div></li>
+      <li class="sidebar-feed-link {% if feed %}active{% endif %}"><a href="http://toasst.com/feed">Your Feed</a></li>
 
-          <li class="nav-header">Other Groups</li>
+      <li class="nav-header">Your Groups</li>
+      {% for this_group in current_user.groups %}
+      <li {% if this_group and this_group.groupID == group.groupID %} class='active' {% endif %}>
+        <a
+        {% if this_group.icon %}
+        style="background-image: url('{{ this_group.icon }}')"
+        {% endif %}
+        href="/g/{{ this_group.link_name }}">{{ this_group.name }}</a>
+      </li>
+      {% endfor %}
+      <li class="new-group-link"><a href="#new-group" data-toggle="modal">+ Create a Group</a></li>
 
-          {% for this_group in current_user.all_unjoined_groups %}
-            <li  {% if this_group == group %} class='active' {% endif %}><a href="/g/{{ this_group }}">{{ this_group.name }}</a></li>
-          {% endfor %}
+      <li class="nav-header">Other Groups</li>
 
-            <li><a href="#new-group" data-toggle="modal">+ Topic</a></li>
-            <li class="nav-header">Members</li>
-            
+      {% for this_group in current_user.all_unjoined_groups %}
+      <li  {% if this_group and this_group.groupID == group.groupID %} class='active' {% endif %}>
+        <a
+        {% if this_group.icon %}
+        style="background-image: url('{{ this_group.icon }}')"
+        {% endif %}
+        href="/g/{{ this_group.link_name }}.bread"
+        >{{ this_group.name }}</a>
+      </li>
+      {% endfor %}
+
+      {% if current_user.is_admin %}
+        <li class="nav-header">Admin</li>
+        <li><a href="/admin/invites.bread">Invite Codes</a></li>
+        <li><a href="/admin/db.bread" target="toasstdb">DB Admin</a></li>
+        <li><a href="/admin/mint.bread" target="toastmint">Mint</a></li>
+      {% endif %}
+
+      {% if group and not feed %}
+          <li class="nav-header">Members</li>
+
           {% for user in group.members %}
-            <li data-userID="{{ user }}"><a  href="/u/{{ user }}">{{ user.name }}</a></li>
+          <li class='user-icon-small' style='background-image:url("{{ user.image }}")'data-userID="{{ user }}"><a rel="tooltip" title="{{ user.name }}"href="/u/{{ user }}.bread"></a></li>
           {% endfor %}
-        </ul>
-      </div>
-    </div>
-    <div class="span10 user-posts">
+          <li class="clearfix"></li>
+          <li><a href="/g/{{ group.link_name }}/directory.bread">Directory</a></li>
+    {% endif %}
+    </ul>
+  </div>
+</div>

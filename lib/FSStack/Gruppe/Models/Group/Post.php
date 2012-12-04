@@ -48,6 +48,43 @@ class Post extends \TinyDb\Orm
      */
     protected $modified_at;
 
+
+    protected $parent_postID;
+
+    public function __get_parent_post()
+    {
+        return new Models\Post($this->parent_postID);
+    }
+
+    public function __get_has_parent_post()
+    {
+        return $this->parent_postID ? TRUE : FALSE;
+    }
+
+    public function __get_parent_grouppost()
+    {
+        return new Post(array(
+            'postID' => $this->parent_postID,
+            'groupID' => $this->groupID
+        ));
+    }
+
+
+    public function __get_nested_reply_count()
+    {
+        $sql = \TinyDb\Sql::create()
+                ->select('COUNT(*)')
+                ->from(static::$table_name)
+                ->where('parent_postID = ?', $this->postID);
+        $row = \TinyDb\Db::get_read()->getRow($sql->get_sql(), NULL, $sql->get_paramaters(), NULL, MDB2_FETCHMODE_ASSOC);
+
+        if (\PEAR::isError($row)) {
+            throw new \Exception($row->getMessage() . ', ' . $row->getDebugInfo());
+        }
+
+        return $row['COUNT(*)'];
+    }
+
     public function __get_my_vote()
     {
         try {
@@ -86,7 +123,8 @@ class Post extends \TinyDb\Orm
     {
         $collection = new \TinyDb\Collection('\FSStack\Gruppe\Models\Group\Post', \TinyDb\Sql::create()
                                       ->join('posts ON (groups_posts.postID = posts.postID)')
-                                      ->where('posts.in_reply_to_postID = ?', $this->postID));
+                                      ->where('posts.in_reply_to_postID = ?', $this->postID)
+                                      ->order_by('created_at DESC'));
         return $collection;
     }
 
