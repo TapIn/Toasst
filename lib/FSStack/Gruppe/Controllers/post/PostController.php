@@ -15,6 +15,10 @@ abstract class PostController extends \CuteControllers\Base\Rest
             'postID' => $this->post->postID
         ));
 
+        if (!Models\User::is_logged_in()) {
+            $this->redirect('/invite/studentrnd');
+        }
+
         \Application::$twig->addGlobal('post', $this->post);
         \Application::$twig->addGlobal('gpost', $this->gpost);
         \Application::$twig->addGlobal('group', $this->group);

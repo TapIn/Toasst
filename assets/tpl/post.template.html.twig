@@ -53,14 +53,14 @@
               <div class='edit-dongle'>
               <li><a  class='comment-icon' href='/g/{{ gpost.group }}/t/{{ gpost.post }}#{{ gpost.postID }}'>permalink</a></li>
             {% else %}
-              <li><a   class='comment-icon' href='/g/{{ gpost.group }}/t/{{ gpost.postID }}'>{{ gpost.nested_reply_count }} {% if gpost.replies|length==1 %}comment{% else %}comments{% endif %}</a></li>
+              <li><a   class='comment-icon' href='/g/{{ gpost.group }}/t/{{ gpost.postID }}'>{{ gpost.nested_reply_count }} {% if gpost.nested_reply_count == 1 %}comment{% else %}comments{% endif %}</a></li>
             {% endif %}
 
 
             {% if not is_reply %}
               <div class='edit-dongle'>
             {% endif %}
-            {% if gpost.has_parent_post %}<li><a href='{{ gpost.parent_post }}' style='cursor:pointer'>parent</a></li>{% endif %}
+            {% if gpost.has_parent_post %}<li><a href='/g/{{gpost.group}}/t/{{ gpost.parent_post }}' style='cursor:pointer'>parent</a></li>{% endif %}
 
 <!--              <li><a href=''><i class="post-icon icon-random"></i></a></li>
 

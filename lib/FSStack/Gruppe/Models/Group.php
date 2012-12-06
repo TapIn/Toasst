@@ -105,7 +105,7 @@ class Group extends \TinyDb\Orm
      * @param  number $after The ID of the previous post; will get posts chronologically older than this
      * @return \TinyDb\Collection[Group\Post]        Collection of post mappings in the newsfeed
      */
-    public function get_newsfeed_posts($count = 15, $after = NULL)
+    public function get_newsfeed_posts($count = 45, $after = NULL)
     {
         $query = \TinyDb\Sql::create()
                   ->select('groups_posts.*')

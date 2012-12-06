@@ -15,6 +15,10 @@ abstract class GroupController extends \CuteControllers\Base\Rest
             throw new \CuteControllers\HttpError(404);
         }
 
+        if (!Models\User::is_logged_in()) {
+            $this->redirect('/invite/studentrnd');
+        }
+
         parent::__construct($request, $action, $positional_args);
     }
 }
