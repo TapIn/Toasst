@@ -49,8 +49,21 @@ class Login extends \CuteControllers\Base\Rest
         $graph_url = "https://graph.facebook.com/me?access_token=" . $params['access_token'];
         $fb_user = json_decode(file_get_contents($graph_url));
 
+        $redirect_group = NULL;
         try {
             $user = Models\User::get_from_email($fb_user->email);
+            try {
+                $invite_obj = new Models\Invite($invite);
+                foreach ($invite_obj->to_join_groups as $group) {
+                    try {
+                        $user->join_group($group);
+                    } catch (\Exception $ex) {}
+                    if ($redirect_group === NULL) {
+                        $redirect_group = $group;
+                    }
+                }
+            } catch (\Exception $ex) {
+            }
         } catch (\TinyDb\NoRecordException $ex) {
             if ($invite) {
                 try {
@@ -70,6 +83,7 @@ class Login extends \CuteControllers\Base\Rest
 
         $user->first_name = $fb_user->first_name;
         $user->last_name = $fb_user->last_name;
+        $user->fb_id = $fb_user->id;
 
         if (isset($fb_user->bio)) {
             $user->about = $fb_user->bio;
@@ -92,7 +106,12 @@ class Login extends \CuteControllers\Base\Rest
         $user->update();
 
         $user->login();
+        setcookie('is_returning_user', 'yes', time() + (60 * 60 * 24 * 31), '/', 'toasst.com');
 
-        $this->redirect('/');
+        if ($redirect_group !== NULL) {
+            $this->redirect('/g/' . $redirect_group->link_name);
+        } else {
+            $this->redirect('/');
+        }
     }
 }

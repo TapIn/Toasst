@@ -182,6 +182,7 @@ class User extends \TinyDb\Orm
      */
     public function login()
     {
+        Models\User\Login::create($this);
         $_SESSION['current_userID'] = $this->userID;
     }
 
@@ -191,6 +192,24 @@ class User extends \TinyDb\Orm
     public static function logout()
     {
         unset($_SESSION['current_userID']);
+    }
+
+    public function send_facebook_push($template, $redirect_to = NULL)
+    {
+        $url = 'https://graph.facebook.com/' . $this->fb_id . '/notifications';
+        $href = 'http://toasst.com/';
+
+        if ($redirect_to !== NULL) {
+            $href .= '?to=' . urlencode($redirect_to);
+        }
+
+        $data = array('access_token' => \Application::get_fb_app_token(), 'href' => $href, 'template' => $template);
+
+        $options = array('http' => array('method'  => 'POST','content' => http_build_query($data)));
+        $context  = stream_context_create($options);
+        $result = @file_get_contents($url, false, $context);
+
+        Models\User\NotificationSent::create($this, 'fb_notification_digest');
     }
 
     /**
@@ -349,5 +368,126 @@ class User extends \TinyDb\Orm
     public function vote(Group $group, Post $post, $vote, $reason = NULL)
     {
         return User\Vote::create($this, $group, $post, $vote, $reason);
+    }
+
+    public function __get_last_login()
+    {
+        $collection = new \TinyDb\Collection('\FSStack\Gruppe\Models\User\Login', \TinyDb\Sql::create()
+                                             ->where('userID = ?', $this->userID)
+                                             ->order_by('created_at DESC')
+                                             ->limit(1));
+
+        if (count($collection) > 0) {
+            return $collection[0];
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * Gets the top posts for the user's digest
+     * @return Group\Post[] List of GroupPosts
+     */
+    public function __get_top_digest_posts()
+    {
+        $sql = \TinyDb\Sql::create()
+                ->join('`posts` on (`posts`.`postID` = `groups_posts`.`postID`)')
+                ->where('(select count(*) from `users_groups`
+                            where `users_groups`.`userID` = ?
+                            and `users_groups`.`groupID` = `groups_posts`.`groupID`) > 0', $this->userID)
+                ->where('`posts`.`markdown` IS NOT NULL')
+                ->where('(select count(*) from `groups_posts_read`
+                            where `groups_posts_read`.`postID` = `groups_posts`.`postID`
+                            and `groups_posts_read`.`groupID` = `groups_posts`.`groupID`
+                            and `groups_posts_read`.`userID` = ?) = 0', $this->userID)
+                ->where('(`posts`.`in_reply_to_postID` is null or `groups_posts`.`reposted_by_userID` is not null)')
+                ->order_by('`groups_posts`.`created_at` DESC')
+                ->limit(50)
+
+                ;
+
+        $collection = new \TinyDb\Collection('\FSStack\Gruppe\Models\Group\Post', $sql);
+
+        $weights = array(
+            'has_image' => 2,
+            'has_video' => 3,
+            'has_title_question' => 6,
+
+            'wordcount' => 7,
+            'pcount' => 8,
+            'posed_questions' => 5,
+            'link_count' => 4,
+            'headings' => 1,
+
+            'score' => 10,
+        );
+
+        $dynamic_triggers = array(
+            'wordcount' => 300,
+            'pcount' => 3,
+            'posed_questions' => 2,
+            'link_count' => 2,
+            'headings' => 1,
+            'blockquotes' => 1,
+            'score' => 3
+        );
+
+        $max_score = 0;
+        foreach ($weights as $k=>$v) {
+            $max_score += $v;
+        }
+
+        $posts_scored = array();
+        foreach ($collection as $post) {
+            $scoring_factors =
+                array(
+                      // Static
+                      'has_image' => $post->post->image ? TRUE : FALSE,
+                      'has_video' => $post->post->video ? TRUE : FALSE,
+                      'has_title_question' => strpos($post->post->title, '?') >= 0,
+
+                      // Dynamic
+                      'wordcount' => str_word_count($post->post->markdown),
+                      'pcount' => substr_count($post->post->rendered_markdown, '<p>'),
+                      'posed_questions' => substr_count($post->post->markdown, '? '),
+                      'link_count' => substr_count($post->post->rendered_markdown, '</a>'),
+                      'headings' => substr_count($post->post->rendered_markdown, '</h'),
+                      'blockquotes' => substr_count($post->post->rendered_markdown, '<blockquote>'),
+                      'score' => $post->score
+                );
+
+            $score = 0;
+            foreach ($weights as $key=>$weight)
+            {
+                $val = $scoring_factors[$key];
+
+                if (in_array($key, $dynamic_triggers)) {
+                    $percent_complete = min(1, ($val/$dynamic_triggers[$key]));
+                    $score += $weight * $score;
+                } else {
+                    if ($val) {
+                        $score += $weight;
+                    }
+                }
+            }
+
+            $score /= $max_score;
+
+            $posts_scored[] = array(
+                'score' => $score,
+                'gpost' => $post
+            );
+        }
+
+        usort($posts_scored, function($a, $b) {
+            return $a['score'] < $b['score'];
+        });
+
+        $posts = array();
+        foreach ($posts_scored as $post) {
+            $posts[] = $post['gpost'];
+        }
+
+        return $posts;
     }
 }

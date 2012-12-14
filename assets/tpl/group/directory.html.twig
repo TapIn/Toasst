@@ -6,7 +6,7 @@
     <ul class="directory">
         {% for user in group.members %}
             <li>
-                <img src="{{ user.image }}" />
+                <a href='/u/{{user}}'><div class='user-icon-large' style="background-image:url('{{user.image}}')"></div></a>
                 <div class="user-info">
                     <div class="real-name">
                         <span class="first-name">{{ user.first_name }}</span>

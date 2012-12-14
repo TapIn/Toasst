@@ -23,6 +23,21 @@ mixpanel.register({
     });
   }
 
+  function sendGET(data, url, done, success)
+  {
+    $.ajax({
+      url: url,
+      context: document.body,
+      type: "GET",
+      data: data
+    }).done(function() {
+    }).success(function(data){
+      if(success) success(data);
+      console.log(data);
+      return data;
+    });
+  }
+
  function newReply(title, content, type, groupID, postID, reload){
     var replyObj = {
       "title": title,
@@ -53,7 +68,7 @@ mixpanel.register({
       rs.removeClass('active');
       num = 0;
       if(rs.hasClass('upvote')) diff = -1;
-      else if(rs.hasClass('upvote')) diff = 1;
+      else if(rs.hasClass('downvote')) diff = 1;
     }
 
     else{
@@ -111,16 +126,6 @@ mixpanel.register({
     sendPOST(voteObj, "/g/"+groupID+"/t/"+ postID+"/vote.json", '', function(){ $(self).siblings('.score').html(parseInt($(self).siblings('.score').html())+diff)});
   }
 
-  function newGroup(){
-    name = $('#new-group-form').val();
-    var postObj = {
-      "name": name
-    }
-    sendPOST(postObj, '/group/new.json', '', function(data){ window.location.href = '/g/' + data.groupID ; } );
-    mixpanel.track("Create new group");
-
-  }
-
   function submitNewLink(self) {
     var link = $('#link-form');
     if(link.attr('data-groupID')!= undefined) groupID = link.attr('data-groupID');
@@ -173,67 +178,77 @@ mixpanel.register({
         'display' : 'block'
       });
     }
-
-
-    //   $('#link-form').css({
-    //     'display' : 'none',
-    //     'opacity' : 0
-    //   });
-
-    //   $('#reply-form').css({
-    //     'display' : 'none',
-    //     'opacity' : 0
-    //   });
-    // }
-    // if(self.className !='post-icon icon-edit'){
-    //   $('.reply-title').css('display','block');
-    //     mixpanel.track("New Post Click");
-    // }
-    // else {
-    //   $('.reply-title').css('display','none');
-    //     mixpanel.track("New Reply Click");
-    // }
   }
 
-  // function selectText(self){
-
-  //   var rs = $('#reply-selector').css('display', 'none');
-  //   var rf = $('#reply-form').css('display', 'block');
-  //   rf.attr('data-postID', rs.closest('.post-container').attr('data-postID'));
-
-  //   var groupID = rs.closest('.post-container').attr('data-groupID');
-  //   rf.attr('data-groupID', groupID);
-
-  //   rs.after(rf);
-  //   setTimeout(function(){rf.css('opacity', 1)}, 10);
-  //   mixpanel.track("Submit New Text Select");
-  // }
-
-  // function selectLink(self){
-  //   var rs = $('#reply-selector').css('display', 'none');
-  //   var rf = $('#link-form').css('display', 'block');
-  //   rf.attr('data-postID', rs.closest('.post-container').attr('data-postID'));
-  //   rf.attr('data-groupID', rs.closest('.post-container').attr('data-groupID'));
-
-  //   rs.after(rf);
-  //   setTimeout(function(){rf.css('opacity', 1)}, 10);
-  //   mixpanel.track("Submit New Link Select");
-  // }
-
-  function fadeInEditDongle(self){
-    $(self).find('.edit-dongle').css('opacity', 1);
-  }
-
-  function fadeOutEditDongle(self){
-    $(self).find('.edit-dongle').css('opacity', 0);
-  }
-
-
-  jQuery(document).ready(function() {
+  $(document).ready(function() {
  // Highlight post
   if(highlight!=undefined) {
     var post = $('.post-container').find("[data-postID='" + highlight + "'] .container-fluid.post-body").first().addClass('active');
   }
+
+  // Show tooltips over members
   $("[rel=tooltip]").tooltip();
   mixpanel.track('Page Load', {'page': document.location});
+
+  // Edit Button
+  $('.edit-button').click(function(){
+
+    var container = $(this).closest('.post-container');
+    var footer = $(this).closest(".container-fluid.post-footer");
+
+    // Query for markdown
+    sendGET('', '/post/markdown.json?postID=' + container.attr('data-postID'), '', (function(data){
+
+      //Hide elements
+      container.find('.post-title').css('display', 'none');
+      container.find('.post-content').css('display', 'none'); 
+
+      // Append form
+      var f = $('\
+        <form>\
+        <textarea class="edit-title-form" name="comments" cols=3 rows=1>' + container.find('.post-title').text() +'</textarea>\
+        <textarea class="edit-content-form" name="comments" cols=40 rows=6>' + data.markdown +'</textarea>\
+        <a class="btn submit-edit">Submit Edit</a>\
+        </form>');
+
+      footer.before(f);
+
+      $('.submit-edit').click((function(){
+        var content = f.find('.edit-content-form').val();
+        var postID = f.closest('.post-container').attr('data-postID');
+        var groupID = f.closest('.post-container').attr('data-groupID');
+        var title = f.find('.edit-title-form').val();
+        var link = '/g/'+groupID+'/t/'+postID+'/edit';
+        sendPOST({'title': title, 'content': content}, link, '', function(){document.location.reload()})
+      }))(f);
+    }))(container, footer);
+  });
+
+  // Container
+  $('.container-fluid.post-body').mouseover(function(){
+    $(this).find('.edit-dongle').css('opacity', 1);
+  }).mouseout(function(){
+    $(this).find('.edit-dongle').css('opacity', 0);
+  });
+
+  // Delete button
+  $('.delete-button').click(function(){
+    var pcontainer = $(this).closest('.post-container');
+    sendPOST('', '/g/' + pcontainer.attr('data-groupID')  + '/t/' + pcontainer.attr('data-postID') + '/delete', '', function(data){document.location.reload()})
+  });
+
+  $('.new-group-btn').click(function(){
+    name = $('#new-group-form').val();
+    sendPOST({"name": name}, '/group/new.json', '', function(data){ window.location.href = '/g/' + data.groupID ; } );
+    mixpanel.track("Create new group");
+  });
+
+  // Read more
+  $('.readmore').click(function(){
+    var self = $(this);
+    var postID = $(this).closest('.post-container').attr('data-postID');
+    sendGET({'postID': postID}, '/post/markdown/rendered.json', '', function(data){
+      self.parent().html(data.html);
+    });
+  });
 });

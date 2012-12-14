@@ -1,0 +1,13 @@
+{% extends "email/base.html.twig" %}
+
+{% block subject %}
+Test
+{% endblock %}
+
+{% block content %}
+  {% for gpost in gposts %}
+    {% block post %}
+            {% include 'email/post.html.twig' %}
+    {% endblock %}
+  {% endfor %}
+{% endblock %}

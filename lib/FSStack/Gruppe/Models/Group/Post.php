@@ -169,4 +169,44 @@ class Post extends \TinyDb\Orm
             throw new \Exception("Not a repost");
         }
     }
+
+    /**
+     * Checks if the post is read for the current user
+     * @return boolean TRUE if the post is read, FALSE otherwise
+     */
+    public function __get_is_read()
+    {
+        return $this->is_read(Models\User::current());
+    }
+
+    /**
+     * Checks if the post is read for the given user
+     * @param  Models\User $user User to check for
+     * @return boolean           TRUE if the post is read, FALSE otherwise
+     */
+    public function is_read(Models\User $user)
+    {
+        $sql = \TinyDb\Sql::create()
+                ->select('COUNT(*)')
+                ->from(PostRead::$table_name)
+                ->where('postID = ?', $this->postID)
+                ->where('groupID = ?', $this->groupID)
+                ->where('userID = ?', $user->userID);
+        $row = \TinyDb\Db::get_read()->getRow($sql->get_sql(), NULL, $sql->get_paramaters(), NULL, MDB2_FETCHMODE_ASSOC);
+
+        if (\PEAR::isError($row)) {
+            throw new \Exception($row->getMessage() . ', ' . $row->getDebugInfo());
+        }
+
+        return $row['COUNT(*)'] > 0;
+    }
+
+    /**
+     * Marks the post as read
+     * @param  Models\User $user User to read the post as
+     */
+    public function mark_read(Models\User $user)
+    {
+        PostRead::create($this, $user);
+    }
 }

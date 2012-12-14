@@ -26,6 +26,79 @@ function twig_function_stats()
     return \TinyDb\Sql::$query_count . ' queries in ' . $totaltime . ' seconds.';
 }
 
+\Application::$twig->addFilter('html_excerpt', new Twig_Filter_Function('twig_render_html_excerpt', array('is_safe' => array('html'))));
+/**
+ * Generates an HTML exerpt for markdown. Bases the length on a number of markdown features.
+ * @param  string  $text  Rendered markdown to exerpt. Auto provided from Twig
+ * @param  integer $count Number of lines. Sort of.
+ * @return string         Exerpt
+ */
+function twig_render_html_excerpt($text, $count = 10)
+{
+    $count *= 2;
+    $text = str_replace("\r\n", "\n", $text);
+    $words = explode("\n", $text);
+
+    $str = '';
+    $i = 0;
+    $was_trimmed = FALSE;
+    foreach ($words as $word) {
+        if ($i > $count) {
+            $was_trimmed = TRUE;
+            break;
+        }
+
+        $str .= ($i > 0 ? ' ' : '');
+
+        $max_line_length = 50;
+        preg_match_all('/^\<([a-zA-Z0-9\ \"\\\'\\\\]*?)\>/', $word, $tags);
+        if (isset($tags[1][0])) {
+            $tag = $tags[1][0];
+        } else {
+            $tag = '';
+        }
+        $delta_i = max(1, intval(strlen($word) / $max_line_length));
+
+        if ($tag) {
+            $delta_i++;
+            if (strlen($tag) > 0 && substr($tag, 0, 1) == 'h') {
+                $delta_i *= 1.2;
+            } else if ($tag == 'blockquote') {
+                $delta_i += 2;
+            } else if ($tag == 'li') {
+                $delta_i += 1;
+            } else if ($tag == 'img') {
+                $delta_i += 10;
+            }
+        }
+
+        if ($i + $delta_i > $count) {
+            $available_line_space = $count - $i;
+            $available_char_space = $available_line_space * $max_line_length;
+
+            $i += $delta_i;
+            $str .= substr($word, 0, $available_char_space);
+            $was_trimmed = TRUE;
+            break;
+        } else {
+            $i += $delta_i;
+            $str .= $word;
+        }
+    }
+
+    // Fix open tags
+    $tidy = new tidy();
+    $tidy->parseString($str, array('show-body-only'=>true), 'utf8');
+    $tidy->cleanRepair();
+    $str = strval($tidy);
+
+    if ($was_trimmed) {
+        $str .= '<span class="readmore">Read More &raquo;</span>';
+    }
+
+    return $str;
+}
+
 \Application::$twig->addFilter('excerpt', new Twig_Filter_Function('twig_render_excerpt', array('is_safe' => array('html'))));
 /**
  * Generates an HTML exerpt. Supports showing em and strong tags, but nothing else.

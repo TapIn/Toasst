@@ -74,7 +74,7 @@ mixpanel.init("6635551c2c4c7f04d45ad16f8967c981");</script><!-- end Mixpanel -->
                     {% for notification in current_user.recent_notifications %}
                       <li><a {% if not notification.is_read %} class='new-notification' {% endif %} href="/g/{{ notification.group }}/t/{% if notification.gpost.has_parent_post %}{{ notification.gpost.parent_post }}{% else %}{{ notification.post}}{% endif %}#{{notification.post}}"><b>{{ notification.source_user.first_name }}</b> replied to your post in {{ notification.group | group_nametag }}.
                       </br>
-                      {{ notification.post.content | excerpt(10, true)}}
+                      {{ notification.post.rendered_markdown | excerpt(10, true)}}
                       </a></li>
                     {% endfor %}
                   </ul>
@@ -128,7 +128,7 @@ mixpanel.init("6635551c2c4c7f04d45ad16f8967c981");</script><!-- end Mixpanel -->
   </div>
   <div class="modal-footer">
     <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary" onclick='newGroup()'>Create new group</button>
+    <button class="new-group-btn btn btn-primary">Create new group</button>
   </div>
 </div>
 
@@ -179,6 +179,8 @@ mixpanel.init("6635551c2c4c7f04d45ad16f8967c981");</script><!-- end Mixpanel -->
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="/assets/js/jquery.js"></script>
+    <script src="/assets/js/underscore.js"></script>
+    <script src="/assets/js/jquery.appear.js"></script>
     <script src="/assets/js/js.js"></script>
     <script src="/assets/js/bootstrap-dropdown.js"></script>
     <script src="/assets/js/bootstrap-tooltip.js"></script>

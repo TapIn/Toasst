@@ -1,0 +1,31 @@
+<div class='post-container'
+data-postID='{{ gpost.postID }}'
+data-groupID='{{ gpost.group }}'>
+
+<div class='post-body'>
+  {% if gpost.post.title %}
+    <a class='post-title' href='/g/{{ gpost.group }}/t/{{ gpost.postID }}'>{{ gpost.post.title }}</a>
+  {% endif %}
+
+  {% if gpost.post.embed_html %}
+    {{ gpost.post.embed_html | raw }}
+  {% else %}
+    {% if gpost.post.thumbnail_url %}
+      <a class='link-preview' href='{{ gpost.post.link }}' style="background-image:url('{{gpost.post.thumbnail_url}}')"></a>
+    {% endif %}
+  {% endif %}
+
+  <div class='post-content'>
+    {{ gpost.post.rendered_markdown | html_excerpt }}
+  </div>
+
+  {% if gpost.post.link %}
+    <a href='{{gpost.post.link}}'>{{ gpost.post.link }}</a>
+  {% endif %}
+
+  {% if gpost.post.image %}
+    <a href='{{gpost.post.image}}'><img src='{{gpost.post.image}}' /></a>
+  {% endif %}
+
+</div>
+</div>

@@ -24,6 +24,7 @@ class Post extends \TinyDb\Orm
      * @var string
      */
     protected $markdown;
+    protected $markdown_cache;
     /**
      * Link to the image, if one exists
      * @var string
@@ -91,12 +92,26 @@ class Post extends \TinyDb\Orm
             'userID' => $user->userID
         );
 
+        $link = NULL;
+        $lines = split("\n", $content);
+
         if (preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $content)) {
-            $oembed = (Array)\Application::$embedly->oembed($content);
+            $link = $content;
+        } else if (preg_match('|^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $lines[0])) {
+            $link = $lines[0];
+            $content = substr($content, strlen($link) + 1);
+        }
+
+        if ($link) {
+            $oembed = (Array)\Application::$embedly->oembed($link);
 
             $type = $oembed['type'];
             if ($type === 'photo') {
                 $type = 'image';
+            }
+
+            if ($type === 'rich') {
+                $type = 'video';
             }
 
             if (isset($oembed['thumbnail_url'])) {
@@ -107,26 +122,27 @@ class Post extends \TinyDb\Orm
                 if (isset($oembed['title'])) {
                     $model_data['title'] = $oembed['title'];
                 } else {
-                    $model_data['title'] = $content;
+                    $model_data['title'] = $link;
                 }
             }
         }
 
         switch ($type) {
             case 'image':
-                $model_data['image'] = $content;
+                $model_data['image'] = $link;
                 break;
             case 'video':
-                $model_data['video'] = $content;
+                $model_data['video'] = $link;
                 $model_data['embed_html'] = $oembed['html'];
                 break;
             case 'link':
-                $model_data['link'] = $content;
+                $model_data['link'] = $link;
                 break;
-            case 'text':
-            default;
-                $model_data['markdown'] = $content;
-                break;
+        }
+
+        if ($content) {
+            $model_data['markdown'] = $content;
+            $model_data['markdown_cache'] = SmartyPants(Markdown($content));
         }
 
         $model = parent::create($model_data);
@@ -153,6 +169,7 @@ class Post extends \TinyDb\Orm
      */
     public function __get_type()
     {
+        trigger_error('->type is no longer supported; posts can now have multiple types.', E_USER_DEPRECATED);
         if ($this->image) {
             return 'image';
         } else if ($this->video) {
@@ -170,6 +187,7 @@ class Post extends \TinyDb\Orm
      */
     public function __get_content( $original = FALSE )
     {
+        trigger_error('Use rendered_markdown instead of ->content.', E_USER_DEPRECATED);
         switch ($this->type) {
             case 'image':
                 return $this->image;
@@ -181,9 +199,20 @@ class Post extends \TinyDb\Orm
                 if ($original) {
                     return $this->markdown;
                 } else {
-                    return SmartyPants(Markdown($this->markdown));
+                    return $this->rendered_markdown;
                 }
         }
+    }
+
+    public function __get_rendered_markdown()
+    {
+        if (!$this->markdown_cache) {
+            $this->markdown_cache = SmartyPants(Markdown($this->markdown));
+            $this->invalidate('markdown_cache');
+            $this->update();
+        }
+
+        return $this->markdown_cache;
     }
 
     public function __get_original_content()

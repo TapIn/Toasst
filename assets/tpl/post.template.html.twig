@@ -1,44 +1,63 @@
-<div class='post-container'  data-postID='{{ gpost.postID }}' data-groupID='{{ gpost.group }}'>
-  <div class='container-fluid'>
+<div
 
+    {% if feed or group %}
+        data-read="{% if gpost.is_read %}true{% else %}false{% endif %}"
+        class="post-container {% if gpost.is_read %}read{% else %}unread{% endif %}"
+    {% else %}
+        class='post-container'
+    {% endif %}
+
+    data-postID='{{ gpost.postID }}'
+    data-groupID='{{ gpost.group }}'>
+
+  <div class='container-fluid'>
     <div>
 
+      <!-- Start Voting -->
       <div class='post-voting'>
         {% if gpost.my_vote > 0 %}
-        <div class='upvote active' onclick='newVote(this, 0)'>Ʌ</div>
+          <div class='upvote active' onclick='newVote(this, 0)'>Ʌ</div>
         {% else %}
-        <div class='upvote' onclick='newVote(this, 1)'>Ʌ</div>
+          <div class='upvote' onclick='newVote(this, 1)'>Ʌ</div>
         {% endif %}
-        <div class='score'>{{ gpost.score }}</div>
+
+          <div class='score'>{{ gpost.score }}</div>
         {% if gpost.my_vote < 0 %}
-        <div class='downvote active' onclick='newVote(this , 0)'>V</div>
+          <div class='downvote active' onclick='newVote(this , 0)'>V</div>
         {% else %}
-        <div class='downvote' onclick='newVote(this , -1)'>V</div>
+          <div class='downvote' onclick='newVote(this , -1)'>V</div>
         {% endif %}
+      </div> <!-- End Voting -->
 
-      </div>
 
-      <div class='container-fluid post-body' onmouseover='fadeInEditDongle(this)' onmouseout='fadeOutEditDongle(this)'>
+      <div class='container-fluid post-body'>
         {% if gpost.post.title %}
-        <a class='post-title' href='/g/{{ gpost.group }}/t/{{ gpost.postID }}'>{{ gpost.post.title }}</a>
+          <a class='post-title' href='/g/{{ gpost.group }}/t/{{ gpost.postID }}'>{{ gpost.post.title }}</a>
         {% endif %}
 
-        {% if gpost.post.type == 'link' %}
-        <a class='link-preview' href='{{ gpost.post.content }}' style="background-image:url('{{gpost.post.thumbnail_url}}')"></a>
-        {% endif %}
-
-        {% if gpost.post.type == 'link' %}
-        <a href='{{ gpost.post.content|raw }}'>
-          {{ gpost.post.content|raw }}
-        </a>
-        {% elseif gpost.post.type == 'video' %}
-        {{ gpost.post.embed_html |raw }}
-        {% elseif gpost.post.type == 'image' %}
-        <a href='{{ gpost.post.content|raw }}'><img class='link-image' src='{{ gpost.post.content|raw }}' /></a>
+        {% if gpost.post.embed_html %}
+          {{ gpost.post.embed_html |raw }}
         {% else %}
-        {{ gpost.post.content|raw }}
+          {% if gpost.post.thumbnail_url %}
+            <a class='link-preview' href='{{ gpost.post.link }}' style="background-image:url('{{gpost.post.thumbnail_url}}')"></a>
+          {% endif %}
         {% endif %}
 
+        <div class='post-content'>
+        {% if not is_post_page %}
+          {{ gpost.post.rendered_markdown|html_excerpt }}
+        {% else %}
+          {{ gpost.post.rendered_markdown|raw }}
+        {% endif %}
+        </div>
+
+        {% if gpost.post.link %}
+          <a href='{{gpost.post.link}}'>{{ gpost.post.link }}</a>
+        {% endif %}
+
+        {% if gpost.post.image %}
+          <a href='{{gpost.post.image}}'><img src='{{gpost.post.image}}' /></a>
+        {% endif %}
         <div class='container-fluid post-footer'>
           <li><a class='post-username' href='/u/{{ gpost.post.user }}'>{{ gpost.post.user.name }}</a></li>
           <li>
@@ -46,29 +65,30 @@
             <a href='/g/{{ gpost.group.link_name }}'>{{ gpost.group | group_nametag }}</a>
           </li>
           <li><span class='post-timestamp timeago' title='{{ gpost.post.created_at | date('c')}}'></span></li>
-            <li><a style='cursor:pointer' onclick='showReplySelector(this{% if is_post_page %},1{% endif %})'>reply </a></li>
+            <li><a class='reply-link' style='cursor:pointer' onclick='showReplySelector(this{% if is_post_page %},1{% endif %})'>reply </a></li>
            {% if is_user_page and gpost.post.is_reply %}
-              <li><a  class='comment-icon'  href='/g/{{ gpost.group }}/t/{{ gpost.post.in_reply_to_postID }}#{{ gpost.postID }}'>{{ gpost.nested_reply_count }} {% if gpost.nested_reply_count == 1 %}comment{% else %}comments{% endif %}</a></li>
+              <li><a  class='comment-icon comment-link'  href='/g/{{ gpost.group }}/t/{{ gpost.post.in_reply_to_postID }}#{{ gpost.postID }}'>{{ gpost.nested_reply_count }} {% if gpost.nested_reply_count == 1 %}comment{% else %}comments{% endif %}</a></li>
             {% elseif is_reply %}
               <div class='edit-dongle'>
-              <li><a  class='comment-icon' href='/g/{{ gpost.group }}/t/{{ gpost.post }}#{{ gpost.postID }}'>permalink</a></li>
+              <li><a  class='comment-icon comment-link' href='/g/{{ gpost.group }}/t/{{ gpost.post }}#{{ gpost.postID }}'>permalink</a></li>
             {% else %}
-              <li><a   class='comment-icon' href='/g/{{ gpost.group }}/t/{{ gpost.postID }}'>{{ gpost.nested_reply_count }} {% if gpost.nested_reply_count == 1 %}comment{% else %}comments{% endif %}</a></li>
+              <li><a   class='comment-icon comment-link' href='/g/{{ gpost.group }}/t/{{ gpost.postID }}'>{{ gpost.nested_reply_count }} {% if gpost.nested_reply_count == 1 %}comment{% else %}comments{% endif %}</a></li>
             {% endif %}
-
 
             {% if not is_reply %}
               <div class='edit-dongle'>
             {% endif %}
-            {% if gpost.has_parent_post %}<li><a href='/g/{{gpost.group}}/t/{{ gpost.parent_post }}' style='cursor:pointer'>parent</a></li>{% endif %}
+            {% if gpost.has_parent_post %}<li><a class='parent-link' href='/g/{{gpost.group}}/t/{{ gpost.parent_post }}' style='cursor:pointer'>parent</a></li>{% endif %}
 
-<!--              <li><a href=''><i class="post-icon icon-random"></i></a></li>
+            {% if gpost.post.user == current_user %}
+              <li><a class='edit-button'>edit</a></li>
+              <li class='delete-button'><a class='delete-link'>delete</a></li>
+            {% endif %}
 
--->        
-</div>
-</div>
-</div>
-</div>
+              </div> <!-- end edit dongle -->
+              </div>
+          </div> <!-- end footer -->
+
 {% if is_post_page %}
 {% for greply in gpost.replies %}
 {% set gpost = greply %}
@@ -78,4 +98,6 @@
 {% endfor %}
 {% endif %}
 </div>
+</div>
+
 </div>

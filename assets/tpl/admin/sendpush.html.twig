@@ -1,0 +1,24 @@
+{% extends "main.template.html.twig" %}
+{% block content %}
+<div class="span10 user-posts">
+    <div class='container-fluid'>
+        <div class="posts-title">
+            <span class="title-text">Send Push</span>
+        </div>
+
+        <div class="posts-contents">
+            <form method="post">
+                <input type="text" name="userID" placeholder="userIDs (CSV)" autocomplete="off" value="" /><br />
+                <input type="text" name="message" autocomplete="off" placeholder="Message" value="" /><br />
+                <input type="text" name="to" autocomplete="off" placeholder="To (relative URL)" value="/feed.bread" /><br />
+                <input type="submit" class="btn btn-success" value="Send" /></td>
+            </form>
+
+            <p>You can use @[<strong>fb_id</strong>] to tag friends in the message (will be replaced with their name
+                in bold). <strong>fb_id</strong> is the FB user ID, NOT the Toasst ID. You can get this from the DB.</p>
+
+            <p>To URL must be relative to toasst.com.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -15,4 +15,9 @@ class Index extends UserController
     {
         $this->redirect('/u/' . Models\User::current()->userID);
     }
+
+    public function __get_email()
+    {
+        echo \Application::$twig->render('email/digest.html.twig', array('gposts' => $this->user->top_digest_posts));
+    }
 }
